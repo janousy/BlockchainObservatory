@@ -1,0 +1,21 @@
+{
+  "name": "debezium_algod_indexer",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "binary.handling.mode": "base64",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.add.headers": "op,table,lsn,source.ts_ms,version",
+    "database.server.name": "algod.indexer",
+    "database.hostname": "127.0.0.1",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "indexer",
+    "plugin.name": "wal2json",
+    "tombstones.on.delete": false
+  }
+}
