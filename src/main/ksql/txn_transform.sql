@@ -1,4 +1,6 @@
-CREATE OR REPLACE STREAM ALGORAND_TXN_STREAM
+-- SET 'auto.offset.reset' = 'earliest';
+CREATE
+OR REPLACE STREAM ALGOD_INDEXER_PUBLIC_TXN_STREAM
 (
 round BIGINT,
 txid VARCHAR,
@@ -8,71 +10,72 @@ asset BIGINT,
 txn VARCHAR,
 extra VARCHAR
 )
-WITH (kafka_topic='algorand-pgsql-delta-noschema-txn', value_format='json', partitions=1);
+WITH (kafka_topic='algod.indexer.public.txn', value_format='json', partitions=1);
 
-CREATE OR REPLACE STREAM ALGORAND_TXN_STREAM_FLAT
-AS SELECT
-              round,
-              txid,
+CREATE
+OR REPLACE STREAM "algod_indexer_public_txn_flat"
+AS
+SELECT round,
+       txid KEY,
               intra,
               typeenum,
               asset,
               extra,
-              EXTRACTJSONFIELD(txn, '$.rr') AS rr,
-              EXTRACTJSONFIELD(txn, '$.sig') AS sig,
+              CAST(EXTRACTJSONFIELD(txn, '$.rr') AS BIGINT) AS rr,
+              CAST(EXTRACTJSONFIELD(txn, '$.sig') AS STRING) AS sig,
 -- Common Txn Fields
-              EXTRACTJSONFIELD(txn, '$.txn.fee') AS txn_fee,
-              EXTRACTJSONFIELD(txn, '$.txn.fv') AS txn_fv,
-              EXTRACTJSONFIELD(txn, '$.txn.gh') AS txn_gh,
-              EXTRACTJSONFIELD(txn, '$.txn.lv') AS txn_lv,
-              EXTRACTJSONFIELD(txn, '$.txn.snd') AS txn_snd,
-              EXTRACTJSONFIELD(txn, '$.txn.type') AS txn_type,
-              EXTRACTJSONFIELD(txn, '$.txn.gen') AS txn_gen,
-              EXTRACTJSONFIELD(txn, '$.txn.grp') AS txn_grp,
-              EXTRACTJSONFIELD(txn, '$.txn.lx') AS txn_lx,
-              EXTRACTJSONFIELD(txn, '$.txn.amt') AS txn_amt,
-              EXTRACTJSONFIELD(txn, '$.txn.note') AS txn_note,
-              EXTRACTJSONFIELD(txn, '$.txn.rekey') AS txn_rekey,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.fee')  AS BIGINT) AS txn_fee,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.fv')   AS BIGINT) AS txn_fv,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.gh')   AS STRING) AS txn_gh,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.lv')   AS BIGINT) AS txn_lv,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.snd')  AS STRING) AS txn_snd,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.type') AS STRING) AS txn_type,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.gen')  AS STRING) AS txn_gen,
+              EXTRACTJSONFIELD(txn, '$.txn.grp') AS txn_grp, --BYTE
+              EXTRACTJSONFIELD(txn, '$.txn.lx') AS txn_lx, --BYTE
+              EXTRACTJSONFIELD(txn, '$.txn.note') AS txn_note, --BYTE
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.rekey') AS STRING) AS txn_rekey,
 -- Payment Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.rcv') AS txn_rcv,
-              EXTRACTJSONFIELD(txn, '$.txn.close') AS txn_close,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.rcv') AS STRING) AS txn_rcv,
+              EXTRACTJSONFIELD(txn, '$.txn.amt') AS txn_amt, --BYTE
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.close') AS STRING) AS txn_close,
 -- Key Registration Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.votekey') AS txn_votekey,
-              EXTRACTJSONFIELD(txn, '$.txn.selkey') AS txn_selkey,
-              EXTRACTJSONFIELD(txn, '$.txn.votefst') AS txn_votefst,
-              EXTRACTJSONFIELD(txn, '$.txn.votelst') AS txn_votelst,
-              EXTRACTJSONFIELD(txn, '$.txn.votekd') AS txn_votekd,
-              EXTRACTJSONFIELD(txn, '$.txn.nonpart') AS txn_nonpart,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.votekey') AS STRING) AS txn_votekey,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.selkey') AS STRING) AS txn_selkey,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.votefst') AS BIGINT) AS txn_votefst,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.votelst') AS BIGINT) AS txn_votelst,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.votekd') AS BIGINT) AS txn_votekd,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.nonpart') AS BOOLEAN) AS txn_nonpart,
 -- Asset Configuration Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.caid') AS txn_caid,
-              EXTRACTJSONFIELD(txn, '$.txn.apar') AS txn_apar,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.caid') AS BIGINT) AS txn_caid,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apar') AS STRING) AS txn_apar,
 -- Asset Transfer/Clawback/Freeze Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.xaid') AS txn_xaid,
-              EXTRACTJSONFIELD(txn, '$.txn.aamt') AS txn_aamt,
-              EXTRACTJSONFIELD(txn, '$.txn.asnd') AS txn_asnd,
-              EXTRACTJSONFIELD(txn, '$.txn.arcv') AS txn_arcv,
-              EXTRACTJSONFIELD(txn, '$.txn.aclose') AS txn_aclose,
-              EXTRACTJSONFIELD(txn, '$.txn.fadd') AS txn_fadd,
-              EXTRACTJSONFIELD(txn, '$.txn.faid') AS txn_faid,
-              EXTRACTJSONFIELD(txn, '$.txn.afrz') AS txn_afrz,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.xaid') AS BIGINT) AS txn_xaid,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.aamt') AS BIGINT) AS txn_aamt,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.asnd') AS STRING) AS txn_asnd,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.arcv') AS STRING) AS txn_arcv,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.aclose') AS STRING) AS txn_aclose,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.fadd') AS STRING) AS txn_fadd,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.faid') AS BIGINT) AS txn_faid,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.afrz') AS BOOLEAN) AS txn_afrz,
 -- Application Call Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.apid') AS txn_apid,
-              EXTRACTJSONFIELD(txn, '$.txn.apan') AS txn_apan,
-              EXTRACTJSONFIELD(txn, '$.txn.apat') AS txn_apat,
-              EXTRACTJSONFIELD(txn, '$.txn.apap') AS txn_apap,
-              EXTRACTJSONFIELD(txn, '$.txn.apaa') AS txn_apaa,
-              EXTRACTJSONFIELD(txn, '$.txn.apsu') AS txn_apsu,
-              EXTRACTJSONFIELD(txn, '$.txn.apfa') AS txn_apfa,
-              EXTRACTJSONFIELD(txn, '$.txn.apas') AS txn_apas,
-              EXTRACTJSONFIELD(txn, '$.txn.apgs') AS txn_apgs,
-              EXTRACTJSONFIELD(txn, '$.txn.apls') AS txn_apls,
-              EXTRACTJSONFIELD(txn, '$.txn.apep') AS txn_apep,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apan') AS BIGINT) AS txn_apan,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apat') AS STRING) AS txn_apat,
+              EXTRACTJSONFIELD(txn, '$.txn.apap') AS txn_apap, --BYTE
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apid') AS BIGINT) AS txn_apid,
+              EXTRACTJSONFIELD(txn, '$.txn.apaa') AS txn_apaa, --BYTE
+              EXTRACTJSONFIELD(txn, '$.txn.apsu') AS txn_apsu, --BYTE
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apfa') AS STRING) AS txn_apfa,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apas') AS STRING) AS txn_apas,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apgs') AS STRING) AS txn_apgs,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apls') AS STRING) AS txn_apls,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.apep') AS STRING) AS txn_apep,
 -- Storage_State_Schema
 -- EXTRACTJSONFIELD(txn, '$.txn.apep') AS txn_nui,
 -- EXTRACTJSONFIELD(txn, '$.txn.nbs') AS txn_nbs,
 -- Signed Transaction
-              EXTRACTJSONFIELD(txn, '$.txn.') AS txn_sig,
-              EXTRACTJSONFIELD(txn, '$.txn.') AS txn_msig,
-              EXTRACTJSONFIELD(txn, '$.txn.') AS txn_lsig
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.sig') AS STRING) AS txn_sig,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.msig')  AS STRING) AS txn_msig,
+              CAST(EXTRACTJSONFIELD(txn, '$.txn.lsig') AS STRING) AS txn_lsig
 
-   FROM ALGORAND_TXN_STREAM;
+FROM ALGOD_INDEXER_PUBLIC_TXN_STREAM;
