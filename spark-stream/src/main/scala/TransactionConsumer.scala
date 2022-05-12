@@ -31,6 +31,8 @@ object TransactionConsumer extends App {
     .config("spark.driver.memory", "2g")
     .getOrCreate()
 
+  spark.sparkContext.setLogLevel("WARN");
+
   val algorandTransactionSchema = new StructType()
     .add("ROUND", StringType)
     .add("TXID", LongType)

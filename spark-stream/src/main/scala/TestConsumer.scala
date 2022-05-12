@@ -30,6 +30,8 @@ object TestConsumer extends App {
     .config("spark.cores.max", "1")
     .getOrCreate()
 
+  spark.sparkContext.setLogLevel("WARN");
+
   val source = spark.readStream
     .format("kafka")
     .option("kafka.bootstrap.servers", KAFKA_HOST)

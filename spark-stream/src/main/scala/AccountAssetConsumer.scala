@@ -7,6 +7,7 @@ import java.io.File
 
 object AccountAssetConsumer extends App {
 
+  // adjust IP addresses accordingly
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
   final val KAFKA_HOST: String = "http://172.23.149.211:9092"
   // assuming the VM has mounted a disk on path /mnt
@@ -31,6 +32,9 @@ object AccountAssetConsumer extends App {
     .config("spark.driver.memory", "2g")
     .getOrCreate()
 
+  // change this level when debugging, e.g. to INFO
+  spark.sparkContext.setLogLevel("ERROR");
+
   val algorandAssetSchema = new StructType()
     .add("addr", StringType)
     .add("assetid", LongType)
@@ -49,7 +53,6 @@ object AccountAssetConsumer extends App {
     .load()
     .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
-  //var query = source.select(col("key"), get_json_object(col("value"), "$.payload").alias("payload"))
   val query = source.select(col("key"), from_json(col("value"), algorandAssetSchema).alias("asset"))
   val data = query.select(col("key"), col("asset.*"))
 

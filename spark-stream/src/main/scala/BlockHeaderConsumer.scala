@@ -31,6 +31,8 @@ object BlockHeaderConsumer extends App {
     .config("spark.driver.memory", "2g")
     .getOrCreate()
 
+  spark.sparkContext.setLogLevel("WARN");
+
   val algorandBlockHeaderSchema = new StructType()
     .add("ROUND", LongType)
     .add("REALTIME", LongType)

@@ -31,6 +31,8 @@ object AccountConsumer extends App {
     .config("spark.driver.memory", "2g")
     .getOrCreate()
 
+  spark.sparkContext.setLogLevel("WARN");
+
   val algorandAccountSchema = new StructType()
     .add("addr", StringType)
     .add("microalgos", LongType)
@@ -51,7 +53,6 @@ object AccountConsumer extends App {
     .load()
     .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
-  //var query = source.select(col("key"), get_json_object(col("value"), "$.payload").alias("payload"))
   val query = source.select(col("key"), from_json(col("value"), algorandAccountSchema).alias("account"))
   val data = query.select(col("key"), col("account.*"))
 

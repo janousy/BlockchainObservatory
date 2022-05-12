@@ -1,3 +1,4 @@
+import AccountAssetConsumer.spark
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, from_json}
 import org.apache.spark.sql.types._
@@ -30,6 +31,8 @@ object AssetConsumer extends App {
     .config("spark.cores.max", "1")
     .config("spark.driver.memory", "2g")
     .getOrCreate()
+
+  spark.sparkContext.setLogLevel("WARN");
 
   val algorandAssetSchema = new StructType()
     .add("INDEX", LongType)
