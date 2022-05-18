@@ -1,0 +1,24 @@
+# example service file
+# the file is to be created /lib/systemd/system/
+
+[Unit]
+Description=Druid Microservice
+
+[Service]
+Environment="DRUID_JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64"
+ExecStart=/home/ubuntu/dev/apache-druid-0.22.1/bin/start-micro-quickstart
+
+[Install]
+WantedBy=multi-user.target
+
+-------------------------
+# commands
+sudo systemctl daemon-reload
+
+sudo systemctl enable druid.service
+sudo systemctl start druid.service
+
+sudo systemctl status druid.service
+
+sudo systemctl stop druid.service
+sudo systemctl disable druid.service

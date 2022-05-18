@@ -59,7 +59,6 @@ object AssetConsumer extends App {
     .load()
     .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
 
-  //var query = source.select(col("key"), get_json_object(col("value"), "$.payload").alias("payload"))
   val query = source.select(col("key"), from_json(col("value"), algorandAssetSchema).alias("asset"))
   val data = query.select(col("key"), col("asset.*"))
 
