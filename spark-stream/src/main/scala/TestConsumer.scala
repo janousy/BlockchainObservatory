@@ -21,7 +21,7 @@ object TestConsumer extends App {
 
   val spark = SparkSession
     .builder()
-    .appName("EXTRACT - " + KAFKA_TOPIC)
+    .appName("KAFKA INGEST - " + KAFKA_TOPIC)
     .master(SPARK_MASTER)
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")

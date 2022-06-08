@@ -1,21 +1,25 @@
 {
   "name": "debezium_algod_indexer",
   "config": {
+    "value.converter.schemas.enable": "false",
+    "key.converter.schemas.enable": "false",
+    "name": "debezium_algod_indexer",
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false",
-    "binary.handling.mode": "base64",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
-    "transforms.unwrap.add.headers": "op,table,lsn,source.ts_ms,version",
+    "transforms.unwrap.add.headers": "op, table, lsn, source.ts_ms, version",
     "database.server.name": "algod.indexer",
-    "database.hostname": "127.0.0.1",
+    "database.hostname": "172.23.149.211",
     "database.port": "5432",
     "database.user": "postgres",
-    "database.password": "postgres",
+    "database.password": "********",
     "database.dbname": "indexer",
     "plugin.name": "wal2json",
-    "tombstones.on.delete": false
+    "binary.handling.mode": "base64",
+    "tombstones.on.delete": "false",
+    "decimal.handling.mode":"double"
   }
 }
