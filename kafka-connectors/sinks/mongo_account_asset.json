@@ -1,5 +1,5 @@
 {
-  "name": "mongo_txn_2",
+  "name": "mongo_account_asset_0",
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
@@ -8,15 +8,15 @@
     "value.converter.schemas.enable": "false",
     "config.action.reload": "restart",
     "errors.log.enable": "true",
-    "topics": "algod_indexer_public_txn_flat",
+    "topics": "algod.indexer.public.account_asset",
     "connection.uri": "mongodb://172.23.149.212:27017",
     "database": "algorand",
-    "collection": "txn",
+    "collection": "account_asset",
     "mongo.errors.log.enable": "true",
     "errors.log.include.messages": "true",
     "document.id.strategy.overwrite.existing": "true",
     "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy",
-    "document.id.strategy.partial.value.projection.list": "txid",
+    "document.id.strategy.partial.value.projection.list": "addr, assetid",
     "document.id.strategy.partial.value.projection.type": "AllowList",
     "writemodel.strategy": "com.mongodb.kafka.connect.sink.writemodel.strategy.ReplaceOneBusinessKeyStrategy"
   }

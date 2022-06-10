@@ -1,4 +1,8 @@
+-- ksql
+
+-- IMPORTANT: to also include earlier messages:
 -- SET 'auto.offset.reset' = 'earliest';
+
 -- using backticks for fields to prevent uppercasing.
 CREATE
 OR REPLACE STREAM ALGOD_INDEXER_PUBLIC_BLOCK_HEADER_STREAM

@@ -18,7 +18,7 @@ CREATE
 OR REPLACE STREAM `algod_indexer_public_txn_flat`
 AS
 SELECT 
-    ALGOD_INDEXER_PUBLIC_TXN_STREAM.`round` AS `round`,
+    `round`,
     `txid`,
     `intra`,
     `typeenum`,
@@ -79,9 +79,5 @@ SELECT
 -- Signed Transaction
     CAST(EXTRACTJSONFIELD(`txn`, '$.txn.sig') AS STRING) AS `txn_sig`,
     CAST(EXTRACTJSONFIELD(`txn`, '$.txn.msig')  AS STRING) AS `txn_msig`,
-    CAST(EXTRACTJSONFIELD(`txn`, '$.txn.lsig') AS STRING) AS `txn_lsig`,
--- JOIN Block Time
-    ALGOD_INDEXER_PUBLIC_BLOCK_HEADER_STREAM.`realtime` AS `realtime`
-FROM ALGOD_INDEXER_PUBLIC_TXN_STREAM
-LEFT JOIN ALGOD_INDEXER_PUBLIC_BLOCK_HEADER_STREAM WITHIN 3 DAYS ON 
-    ALGOD_INDEXER_PUBLIC_BLOCK_HEADER_STREAM.`round` = ALGOD_INDEXER_PUBLIC_TXN_STREAM.`round`;
+    CAST(EXTRACTJSONFIELD(`txn`, '$.txn.lsig') AS STRING) AS `txn_lsig`
+FROM ALGOD_INDEXER_PUBLIC_TXN_STREAM;
