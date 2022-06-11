@@ -27,11 +27,13 @@ db.createCollection("app")
 db.createCollection("account_app")
 
 # create indices to increase perfomance of mongodb sink ReplaceOneBusinessKeyStrategy write strategy
-db.account.createIndex({addr: "text"},{unique: true})
-db.account_asset.createIndex({addr: "text", index: 1},{unique: true})
-db.asset.createIndex({index: 1},{unique: true})
-db.block_header.createIndex({round: 1},{unique: true})
-db.txn.createIndex({txid: "text"},{unique: true})
-db.txn.createIndex({block_round: 1, intra: 1},{unique: true})
-db.app.createIndex({app: 1},{unique: true})
-db.account_app.createIndex({app: 1, addr: "text"},{unique: true})
+# NOTE: we don't need text indices, since we can match sting IDs exactly. 
+# "text"-indicises will slow down the sinking immensly! 
+# NOTE: the sink connectors might have to be paused to created the indices.
+db.account.createIndex({addr: 1},{unique: true})
+db.account_asset.createIndex({addr: 1, assetid: -1},{unique: true})
+db.asset.createIndex({index: -1},{unique: true})
+db.block_header.createIndex({round: -1},{unique: true})
+db.txn.createIndex({round: -1, intra: -1},{unique: true})
+db.app.createIndex({app: -1},{unique: true})
+db.account_app.createIndex({app: -1, addr: 1},{unique: true})
