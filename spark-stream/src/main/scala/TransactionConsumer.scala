@@ -38,10 +38,10 @@ object TransactionConsumer extends App {
 
   val algorandTransactionSchema = new StructType()
     .add("ROUND", LongType)
-    .add("TXID", LongType)
+    .add("TXID", StringType)
     .add("INTRA", LongType)
     .add("TYPEENUM", LongType)
-    .add("ASSET", BooleanType)
+    .add("ASSET", LongType)
     .add("EXTRA", StringType)
     .add("RR", LongType)
     .add("SIG", StringType)
@@ -59,7 +59,7 @@ object TransactionConsumer extends App {
     .add("TXN_REKEY", StringType)
     // Payment Transaction
     .add("TXN_RCV", StringType)
-    .add("TXN_AMT", StringType)
+    .add("TXN_AMT", LongType)
     .add("TXN_CLOSE", StringType)
     // Key Registration Transaction
     .add("TXN_VOTEKEY", StringType)
