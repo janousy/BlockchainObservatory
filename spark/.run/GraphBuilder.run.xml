@@ -7,7 +7,7 @@
     <option name="artifactArgs" value="" />
     <option name="artifactPath">
       <FilePath>
-        <option name="path" value="$PROJECT_DIR$/target/scala-2.12/graph_builder_assembly-assembly-0.1.0-SNAPSHOT.jar" />
+        <option name="path" value="$PROJECT_DIR$/target/scala-2.12/graph_builder-assembly-0.1.0-SNAPSHOT.jar" />
         <option name="type" value="UPLOAD" />
       </FilePath>
     </option>

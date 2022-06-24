@@ -4,9 +4,10 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, lit, when}
 import org.apache.spark.sql.types.{BooleanType, LongType, StringType, StructType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
-
+import org.slf4j.{Logger, LoggerFactory}
 
 object GraphBuilder extends App {
+  val LOGGER = LoggerFactory.getLogger("CustomLogs")
 
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
   final val MONGODB_SOURCE_DB: String = "test"
@@ -19,14 +20,14 @@ object GraphBuilder extends App {
     .builder()
     .appName("Neo4j Graph-Builder")
     .master(SPARK_MASTER)
-    .config("spark.executor.memory", "36g")
+    .config("spark.executor.memory", "32g")
     .config("spark.executor.cores", "1")
     .config("spark.cores.max", "1")
-    .config("spark.driver.memory", "5g")
+    .config("spark.driver.memory", "8g")
     .config("spark.dynamicAllocation.enabled", "true")
     .config("spark.dynamicAllocation.shuffleTracking.enabled", "true")
     .config("spark.dynamicAllocation.executorIdleTimeout", "60s")
-    .config("spark.dynamicAllocation.minExecutors", "0")
+    .config("spark.dynamicAllocation.minExecutors", "1")
     .config("spark.dynamicAllocation.maxExecutors", "1")
     .config("spark.dynamicAllocation.initialExecutors", "1")
     .config("spark.dynamicAllocation.executorAllocationRatio", "1")
@@ -34,9 +35,14 @@ object GraphBuilder extends App {
     .config("spark.worker.cleanup.interval", "60")
     .config("spark.shuffle.service.db.enabled", "true")
     .config("spark.worker.cleanup.appDataTtl", "60")
-    .getOrCreate()
+    .config("spark.executor.logs.rolling.strategy", "time")
+    .config("spark.executor.logs.rolling.time.interval", "minutely")
+    .config("spark.executor.logs.rolling.maxRetainedFiles", "3")
+    .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector:10.0.2")
 
-  spark.sparkContext.setLogLevel("DEBUG")
+  .getOrCreate()
+
+  spark.sparkContext.setLogLevel("INFO")
 
   val schema = new StructType()
     .add("round", LongType)
@@ -99,6 +105,7 @@ object GraphBuilder extends App {
     .add("txn_msig", StringType)
     .add("txn_lsig", StringType)
 
+  println("Reading from MongoDB at %s:%s", MONGODB_SOURCE_DB, MONGODB_SOURCE_COLLECT)
   val dfTxn = spark.read.format("mongodb")
     .option("spark.mongodb.connection.uri", "mongodb://172.23.149.212:27017")
     .option("spark.mongodb.database", MONGODB_SOURCE_DB)

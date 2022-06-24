@@ -1,11 +1,13 @@
-This Scala application serves as a Consumer to write Kafka topics into Delta Lake on Spark via spark-submit.
-
-++ Assembly plugin
+These Scala applications serve as Spark jobs. They can be submitted to an existing cluster.
 
 Requirements:
 - sbt 1.6.2 to compile to project and create an uber jar using assembly
 - Scala 2.12.15
 - Java 11.0.14-librca
+
+The sbt assembly tool is used to package the Scala classes and its dependencies into an "uber-jar" (or "fat-jar").
+The plugin is configured in `project/plugins.sbt`.
+It is recommended to use the Intellij IDE from Jetbrains and load the project as an sbt-Project.
 
 To run these Scala applications, an existing Spark Cluster is needed. The most convenient way is to
 create a 'Run Configuration' in Intellij using the 'Big Data Tools' plugin. This allows creating a 'spark submit'
