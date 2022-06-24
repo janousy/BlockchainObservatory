@@ -12,7 +12,10 @@ create a 'Run Configuration' in Intellij using the 'Big Data Tools' plugin. This
 command that uploads the uber-jar (after assembly) with all the required dependencies in `build.sbt` to the server running spark, and
 then either starts the Application in 'client' or 'cluster' mode. More information can be found
 on the Intellij IDEA [website](https://www.jetbrains.com/help/idea/big-data-tools-spark-submit.html).
-Example run configurations are available in the ```.run``` directory.
+
+Example run configurations are available in the ```.run``` directory:
+- adjust the SSH configuration for the server to the VM with a key-pair.
+- adjust the path to the assembly build jar to be uploaded to the server.
 
 An example command could look like the following:
 
@@ -24,7 +27,7 @@ An example command could look like the following:
     file:///home/ubuntu/dev/jars/kafka-spark-ingest-assembly-0.1.0-SNAPSHOT.jar
  ```
 
-To build the uber-jar, set the ```spark-stream``` directory as the project root, then run:
+To build the uber-jar, set the ```spark``` directory as the project root in your console, then run:
 
 ```
 sbt assembly

@@ -12,7 +12,7 @@
       </FilePath>
     </option>
     <option name="beforeShellScript" value="" />
-    <option name="className" value="GraphBuilder" />
+    <option name="className" value="neo4j.GraphBuilder" />
     <option name="clusterManager" value="STANDALONE" />
     <option name="conf" value="" />
     <option name="deployMode" value="CLIENT" />
@@ -44,7 +44,7 @@
     </option>
     <option name="master" value="spark://172.23.149.212:7077" />
     <option name="numExecutors" value="" />
-    <option name="packages" value="org.mongodb.spark:mongo-spark-connector:10.0.2" />
+    <option name="packages" value="org.mongodb.spark:mongo-spark-connector:10.0.2,neo4j-contrib:neo4j-connector-apache-spark_2.12:4.0.1_for_spark_3" />
     <option name="principal" value="" />
     <option name="projectPathOnTarget" />
     <option name="propertiesFile">
