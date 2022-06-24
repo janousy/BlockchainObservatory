@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := "2.12.15"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "kafka-spark-ingest",
+    name := "graph_builder_assembly",
 
     libraryDependencies += "org.apache.spark" %% "spark-core" % SPARK_VERSION % "provided",
     libraryDependencies += "org.apache.spark" %% "spark-sql" % SPARK_VERSION % "provided",
@@ -20,5 +20,3 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs@_*) => MergeStrategy.discard
   case x => MergeStrategy.first
 }
-
-

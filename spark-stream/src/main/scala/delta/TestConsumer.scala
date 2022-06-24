@@ -1,4 +1,4 @@
-package sink
+package delta
 
 import org.apache.spark.sql.SparkSession
 

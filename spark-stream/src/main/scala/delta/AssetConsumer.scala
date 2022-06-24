@@ -1,4 +1,4 @@
-package sink
+package delta
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, from_json, round}
