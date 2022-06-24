@@ -1,10 +1,10 @@
-import AccountConsumer.{TARGET_DELTA_TABLE, data}
+package sink
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.{col, from_json, round}
-import org.apache.spark.sql.types.{BooleanType, IntegerType, LongType, StringType, StructType}
+import org.apache.spark.sql.types._
 
 import java.io.File
-
 
 object TransactionConsumer extends App {
 

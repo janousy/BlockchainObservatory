@@ -1,9 +1,8 @@
+package sink
+
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, from_json, get_json_object}
-import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, LongType, StringType, StructField, StructType}
 
 import java.io.File
-
 
 object TestConsumer extends App {
 

@@ -1,7 +1,6 @@
 -- SET 'auto.offset.reset' = 'earliest';
 -- using backticks for fields to prevent uppercasing.
-CREATE
-OR REPLACE STREAM ALGOD_INDEXER_PUBLIC_TXN_STREAM
+CREATE OR REPLACE STREAM ALGOD_INDEXER_PUBLIC_TXN_STREAM
 (
 `round`  BIGINT,
 `txid`  VARCHAR,
@@ -14,10 +13,8 @@ OR REPLACE STREAM ALGOD_INDEXER_PUBLIC_TXN_STREAM
 WITH (kafka_topic='algod.indexer.public.txn', value_format='json', partitions=1);
 
 -- create a persistent query to write the stream to a topic
-CREATE
-OR REPLACE STREAM `algod_indexer_public_txn_flat`
-AS
-SELECT 
+CREATE OR REPLACE STREAM `algod_indexer_public_txn_flat`
+AS SELECT 
     `round`,
     `txid`,
     `intra`,
