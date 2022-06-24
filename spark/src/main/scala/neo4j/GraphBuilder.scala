@@ -1,7 +1,7 @@
 package neo4j
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, lit, when}
 import org.apache.spark.sql.types.{BooleanType, LongType, StringType, StructType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
@@ -9,6 +9,8 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 object GraphBuilder extends App {
 
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
+  final val MONGODB_SOURCE_DB: String = "test"
+  final val MONGODB_SOURCE_COLLECT: String = "txn"
 
   //TODO: change this when converting to stream
   final val BATCH_SIZE: Int = 50000
@@ -34,7 +36,7 @@ object GraphBuilder extends App {
     .config("spark.worker.cleanup.appDataTtl", "60")
     .getOrCreate()
 
-  spark.sparkContext.setLogLevel("DEBUG");
+  spark.sparkContext.setLogLevel("DEBUG")
 
   val schema = new StructType()
     .add("round", LongType)
@@ -99,8 +101,8 @@ object GraphBuilder extends App {
 
   val dfTxn = spark.read.format("mongodb")
     .option("spark.mongodb.connection.uri", "mongodb://172.23.149.212:27017")
-    .option("spark.mongodb.database", "algorand")
-    .option("spark.mongodb.collection", "txn")
+    .option("spark.mongodb.database", MONGODB_SOURCE_DB)
+    .option("spark.mongodb.collection", MONGODB_SOURCE_COLLECT)
     .option("park.mongodb.read.readPreference.name", "primaryPreferred")
     .option("spark.mongodb.change.stream.publish.full.document.only", "true")
     .option("forceDeleteTempCheckpointLocation", "true")
@@ -111,8 +113,8 @@ object GraphBuilder extends App {
     .select(col("txid"), col("txn_snd"), col("txn_rcv"), col("txn_amt"), col("txn_fee"),
       col("round"), col("intra"), col("txn_close"))
 
-  val dfTxnSender = dfPaymentTx.select(col("txn_snd").alias("account"))
-  val dfTxnReceiver = dfPaymentTx.select(col("txn_rcv").alias("account"))
+  var dfTxnSender = dfPaymentTx.select(col("txn_snd").alias("account"))
+  var dfTxnReceiver = dfPaymentTx.select(col("txn_rcv").alias("account"))
   val dfPaymentAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
 
   dfPaymentAccounts.write.
@@ -120,9 +122,8 @@ object GraphBuilder extends App {
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
-    //TODO: change this when converting to stream
-    .option("batch.size", 5000 * 10)
     .mode(SaveMode.Overwrite)
+    .option("batch.size", BATCH_SIZE)
     .save()
 
   dfPaymentTx.write
@@ -138,11 +139,10 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "txn_rcv:account")
     .option("relationship.properties", "txn_amt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_close:closedSndAccountTx")
-    //TODO: change this when converting to stream
-    .option("batch.size", 5000 * 10)
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfKeyregTx = dfTxn.filter(col("typeenum") === 2)
+  var dfKeyRegTx = dfTxn.filter(col("typeenum") === 2)
     .select(col("txid"),
       col("round"),
       col("intra"),
@@ -154,39 +154,35 @@ object GraphBuilder extends App {
       col("txn_votekey"),
       col("txn_votelst"))
 
-  from pyspark
-  .sql.functions
+  dfKeyRegTx = dfKeyRegTx.withColumn("keyRegistrationType",
+  when(col("txn_selkey").isNotNull() || col("txn_votefst").isNotNull()
+    || col("txn_votekd").isNotNull() || col("txn_votekey").isNotNull()
+    || col("txn_votelst").isNotNull(), "online")
+    .otherwise("offline"))
+  .withColumn("txn_rcv", lit(0))
 
-  import when
+  val dfParticipationNodes = dfKeyRegTx.select(dfKeyRegTx.col("txn_rcv").alias("id")).distinct()
 
-  dfKeyregTx = dfKeyregTx.withColumn('keyRegistrationType
-  ',
-  when(fn.col("txn_selkey").isNotNull() | fn.col("txn_votefst").isNotNull() | fn.col("txn_votekd").isNotNull() | fn.col("txn_votekey").isNotNull() | fn.col("txn_votelst").isNotNull(), "online")
-    .otherwise("offline")
-  )
-  .withColumn('txn_rcv
-  ', fn.lit(0)
-  )
-
-  dfParticipationNodes = dfKeyregTx.select(dfKeyregTx.txn_rcv.alias("id")).distinct()
-
-  dfParticipationNodes.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+  dfParticipationNodes.write
+    .format("org.neo4j.spark.DataSource")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":ParticipationNode")
     .option("node.keys", "id")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfKeyRegAccounts = dfKeyregTx.select(dfKeyregTx.txn_snd.alias("account")).distinct()
+  val dfKeyRegAccounts = dfKeyRegTx.select(dfKeyRegTx.col("txn_snd").alias("account")).distinct()
 
   dfKeyRegAccounts.write.format("org.neo4j.spark.DataSource")
     .mode("Overwrite")
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfKeyregTx.write.format("org.neo4j.spark.DataSource")
+  dfKeyRegTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
     .mode("Append")
     .option("relationship", "KEY_REGISTRATION")
@@ -196,51 +192,49 @@ object GraphBuilder extends App {
     .option("relationship.source.node.keys", "txn_snd:account")
     .option("relationship.target.labels", ":ParticipationNode")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, keyRegistrationType:keyRegistrationType")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfAssetConfigTx = dfTxn.filter(dfTxn.typeenum == 3)
-    .select(dfTxn.txid,
-      dfTxn.round,
-      dfTxn.intra,
-      dfTxn.txn_fee,
-      dfTxn.txn_snd,
-      dfTxn.txn_caid,
-      dfTxn.txn_apar,
-      dfTxn.asset)
+  var dfAssetConfigTx = dfTxn.filter(dfTxn.col("typeenum") === 3)
+    .select(dfTxn.col("txid"),
+      dfTxn.col("round"),
+      dfTxn.col("intra"),
+      dfTxn.col("txn_fee"),
+      dfTxn.col("txn_snd"),
+      dfTxn.col("txn_caid"),
+      dfTxn.col("txn_apar"),
+      dfTxn.col("asset"))
 
-  from pyspark
-  .sql.functions
-
-  import when
-
-  dfAssetConfigTx = dfAssetConfigTx.withColumn('configurationType
-  ',
-  when(fn.col("txn_caid").isNull(), "creation")
-    .when(fn.col("txn_caid").isNotNull() & fn.col("txn_apar").isNotNull(), "configuration")
-    .when(fn.col("txn_caid").isNotNull() & fn.col("txn_apar").isNull(), "destruction")
+  dfAssetConfigTx = dfAssetConfigTx.withColumn("configurationType",
+  when(col("txn_caid").isNull(), "creation")
+    .when(col("txn_caid").isNotNull() && col("txn_apar").isNotNull(), "configuration")
+    .when(col("txn_caid").isNotNull() && col("txn_apar").isNull(), "destruction")
   )
 
-  dfAssetAccountsConfig = dfAssetConfigTx.select(dfAssetConfigTx.txn_snd.alias("account")).distinct()
+  val dfAssetAccountsConfig = dfAssetConfigTx.select(dfAssetConfigTx.col("txn_snd").alias("account")).distinct()
 
-  dfAssetAccountsConfig.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+  dfAssetAccountsConfig.write.
+    format("org.neo4j.spark.DataSource")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfAssets = dfAssetConfigTx.select(dfAssetConfigTx.asset.alias("asset")).distinct()
+  var dfAssets = dfAssetConfigTx.select(dfAssetConfigTx.col("asset").alias("asset")).distinct()
 
   dfAssets.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Asset")
     .option("node.keys", "asset")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
   dfAssetConfigTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .mode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_CONFIGURATION")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -250,55 +244,52 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "asset:asset")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_caid:assetId, txn_apar:configurationParameters, configurationType:configurationType")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfAssetTransferTx = dfTxn.filter(dfTxn.typeenum == 4)
-    .select(dfTxn.txid,
-      dfTxn.round,
-      dfTxn.intra,
-      dfTxn.txn_fee,
-      dfTxn.txn_snd,
-      dfTxn.txn_arcv,
-      dfTxn.txn_aamt,
-      dfTxn.txn_asnd,
-      dfTxn.asset,
-      dfTxn.txn_xaid)
+  var dfAssetTransferTx = dfTxn.filter(dfTxn.col("typeenum") === 4)
+    .select(dfTxn.col("txid"),
+      dfTxn.col("round"),
+      dfTxn.col("intra"),
+      dfTxn.col("txn_fee"),
+      dfTxn.col("txn_snd"),
+      dfTxn.col("txn_arcv"),
+      dfTxn.col("txn_aamt"),
+      dfTxn.col("txn_asnd"),
+      dfTxn.col("asset"),
+      dfTxn.col("txn_xaid"))
 
-  from pyspark
-  .sql.functions
-
-  import when
-
-  dfAssetTransferTx = dfAssetTransferTx.withColumn('transferType
-  ',
-  when(fn.col("txn_asnd").isNotNull(), "revoke")
-    .when(fn.col("txn_snd") == fn.col("txn_arcv"), "opt-in")
+  dfAssetTransferTx = dfAssetTransferTx.withColumn("transferType",
+  when(col("txn_asnd").isNotNull(), "revoke")
+    .when(col("txn_snd") === col("txn_arcv"), "opt-in")
     .otherwise("transfer")
   )
 
-  dfAssets = dfAssetTransferTx.select(dfAssetTransferTx.txn_xaid.alias("asset")).distinct()
+  dfAssets = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_xaid").alias("asset")).distinct()
 
   dfAssets.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Asset")
     .option("node.keys", "asset")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfTxnSender = dfAssetTransferTx.select(dfAssetTransferTx.txn_snd.alias("account"))
-  dfTxnReceiver = dfAssetTransferTx.select(dfAssetTransferTx.txn_arcv.alias("account"))
-  dfAssetAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
+  dfTxnSender = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_snd").alias("account"))
+  dfTxnReceiver = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_arcv").alias("account"))
+  val dfAssetAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
 
   dfAssetAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
   dfAssetTransferTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .mode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_TRANSFER")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -308,9 +299,10 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "txn_arcv:account")
     .option("relationship.properties", "txn_aamt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_xaid:assetId, txn_asnd:assetSenderInRevokingTx, transferType")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  val dfAssetFreezeTx = dfTxn.filter(col("typeenum") === 5)
+  var dfAssetFreezeTx = dfTxn.filter(col("typeenum") === 5)
     .select(col("txid"),
       col("round"),
       col("intra"),
@@ -363,7 +355,7 @@ object GraphBuilder extends App {
     .option("batch.size", BATCH_SIZE)
     .save()
 
-  val dfApplicationCallTx = dfTxn.filter(col("typeenum") === 6)
+  var dfApplicationCallTx = dfTxn.filter(col("typeenum") === 6)
     .select(col("txid"),
       col("round"),
       col("intra"),
