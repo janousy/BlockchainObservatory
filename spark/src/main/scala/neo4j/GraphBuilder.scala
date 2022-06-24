@@ -120,19 +120,6 @@ object GraphBuilder extends App {
     .select(col("txid"), col("txn_snd"), col("txn_rcv"), col("txn_amt"), col("txn_fee"),
       col("round"), col("intra"), col("txn_close"))
 
-  var dfTxnSender = dfPaymentTx.select(col("txn_snd").alias("account"))
-  var dfTxnReceiver = dfPaymentTx.select(col("txn_rcv").alias("account"))
-  val dfPaymentAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
-
-  dfPaymentAccounts.write.
-    format("org.neo4j.spark.DataSource")
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .mode(SaveMode.Overwrite)
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
   dfPaymentTx.write
     .format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
@@ -168,26 +155,6 @@ object GraphBuilder extends App {
     .otherwise("offline"))
   .withColumn("txn_rcv", lit(0))
 
-  val dfParticipationNodes = dfKeyRegTx.select(dfKeyRegTx.col("txn_rcv").alias("id")).distinct()
-
-  dfParticipationNodes.write
-    .format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":ParticipationNode")
-    .option("node.keys", "id")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
-  val dfKeyRegAccounts = dfKeyRegTx.select(dfKeyRegTx.col("txn_snd").alias("account")).distinct()
-
-  dfKeyRegAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .option("batch.size", BATCH_SIZE)
-    .save()
 
   dfKeyRegTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
@@ -217,27 +184,6 @@ object GraphBuilder extends App {
     .when(col("txn_caid").isNotNull() && col("txn_apar").isNotNull(), "configuration")
     .when(col("txn_caid").isNotNull() && col("txn_apar").isNull(), "destruction")
   )
-
-  val dfAssetAccountsConfig = dfAssetConfigTx.select(dfAssetConfigTx.col("txn_snd").alias("account")).distinct()
-
-  dfAssetAccountsConfig.write.
-    format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
-  var dfAssets = dfAssetConfigTx.select(dfAssetConfigTx.col("asset").alias("asset")).distinct()
-
-  dfAssets.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Asset")
-    .option("node.keys", "asset")
-    .option("batch.size", BATCH_SIZE)
-    .save()
 
   dfAssetConfigTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
@@ -272,28 +218,6 @@ object GraphBuilder extends App {
     .otherwise("transfer")
   )
 
-  dfAssets = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_xaid").alias("asset")).distinct()
-
-  dfAssets.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Asset")
-    .option("node.keys", "asset")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
-  dfTxnSender = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_snd").alias("account"))
-  dfTxnReceiver = dfAssetTransferTx.select(dfAssetTransferTx.col("txn_arcv").alias("account"))
-  val dfAssetAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
-
-  dfAssetAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
   dfAssetTransferTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
     .mode(SaveMode.Append)
@@ -320,32 +244,10 @@ object GraphBuilder extends App {
       col("txn_faid"),
       col("asset"))
 
-  // TODO checken das dies geht
-
   dfAssetFreezeTx = dfAssetFreezeTx.withColumn("freezeType",
   when(dfAssetFreezeTx.col("txn_afrz") === "true", "freeze")
     .when(dfAssetFreezeTx.col("txn_afrz") === "false", "unfreeze")
   )
-
-  val dfAssetsFreeze = dfAssetFreezeTx.select(dfAssetFreezeTx.col("asset").alias("asset")).distinct()
-
-  dfAssetsFreeze.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Asset")
-    .option("node.keys", "asset")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
-  val dfAssetFreezeAccounts = dfAssetFreezeTx.select(dfAssetFreezeTx.col("txn_snd").alias("account")).distinct()
-
-  dfAssetFreezeAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .option("batch.size", BATCH_SIZE)
-    .save()
 
   dfAssetFreezeTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
@@ -383,7 +285,6 @@ object GraphBuilder extends App {
       col("txn_note"))
 
 
-   // TODO checken dass das richtig ist wenn when importiert ist
   dfApplicationCallTx = dfApplicationCallTx.withColumn("applicationCallType",
   when(dfApplicationCallTx.col("txn_apan").isNull() && dfApplicationCallTx.col("txn_apid").isNull() && dfApplicationCallTx.col("txn_apap").isNotNull() && dfApplicationCallTx.col("txn_apsu").isNotNull(), "create")
     .when(dfApplicationCallTx.col("txn_apan") === 4, "update")
@@ -393,26 +294,6 @@ object GraphBuilder extends App {
     .when(dfApplicationCallTx.col("txn_apan") === 3, "clear-state")
     .otherwise("noOp")
   )
-
-  val dfApplications = dfApplicationCallTx.select(dfApplicationCallTx.col("asset").alias("application")).distinct()
-
-  dfApplications.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Application")
-    .option("node.keys", "application")
-    .option("batch.size", BATCH_SIZE)
-    .save()
-
-  val dfApplicationAccounts = dfApplicationCallTx.select(dfApplicationCallTx.col("txn_snd").alias("account")).distinct()
-
-  dfApplicationAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode(SaveMode.Overwrite)
-    .option("url", "bolt://172.23.149.212:7687")
-    .option("labels", ":Account")
-    .option("node.keys", "account")
-    .option("batch.size", BATCH_SIZE)
-    .save()
 
   dfApplicationCallTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
