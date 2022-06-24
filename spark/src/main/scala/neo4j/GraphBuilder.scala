@@ -10,6 +10,9 @@ object GraphBuilder extends App {
 
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
 
+  //TODO: change this when converting to stream
+  final val BATCH_SIZE: Int = 50000
+
   val spark = SparkSession
     .builder()
     .appName("Neo4j Graph-Builder")
@@ -307,49 +310,47 @@ object GraphBuilder extends App {
     .option("relationship.properties", "txn_aamt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_xaid:assetId, txn_asnd:assetSenderInRevokingTx, transferType")
     .save()
 
-  dfAssetFreezeTx = dfTxn.filter(dfTxn.typeenum == 5)
-    .select(dfTxn.txid,
-      dfTxn.round,
-      dfTxn.intra,
-      dfTxn.txn_fee,
-      dfTxn.txn_snd,
-      dfTxn.txn_afrz,
-      dfTxn.txn_fadd,
-      dfTxn.txn_faid,
-      dfTxn.asset)
+  val dfAssetFreezeTx = dfTxn.filter(col("typeenum") === 5)
+    .select(col("txid"),
+      col("round"),
+      col("intra"),
+      col("txn_fee"),
+      col("txn_snd"),
+      col("txn_afrz"),
+      col("txn_fadd"),
+      col("txn_faid"),
+      col("asset"))
 
-  from pyspark
-  .sql.functions
+  // TODO checken das dies geht
 
-  import when
-
-  dfAssetFreezeTx = dfAssetFreezeTx.withColumn('freezeType
-  ',
-  when(fn.col("txn_afrz") == "true", "freeze")
-    .when(fn.col("txn_afrz") == "false", "unfreeze")
+  dfAssetFreezeTx = dfAssetFreezeTx.withColumn("freezeType",
+  when(dfAssetFreezeTx.col("txn_afrz") === "true", "freeze")
+    .when(dfAssetFreezeTx.col("txn_afrz") === "false", "unfreeze")
   )
 
-  dfAssetsFreeze = dfAssetFreezeTx.select(dfAssetFreezeTx.asset.alias("asset")).distinct()
+  val dfAssetsFreeze = dfAssetFreezeTx.select(dfAssetFreezeTx.col("asset").alias("asset")).distinct()
 
   dfAssetsFreeze.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Asset")
     .option("node.keys", "asset")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfAssetFreezeAccounts = dfAssetFreezeTx.select(dfAssetFreezeTx.txn_snd.alias("account")).distinct()
+  val dfAssetFreezeAccounts = dfAssetFreezeTx.select(dfAssetFreezeTx.col("txn_snd").alias("account")).distinct()
 
   dfAssetFreezeAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
   dfAssetFreezeTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .mode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_FREEZE")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -359,65 +360,64 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "asset:asset")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_fadd:frozenAssetAccountHolder, txn_faid:assetIdBeingFrozen, freezeType:freezeType")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfApplicationCallTx = dfTxn.filter(dfTxn.typeenum == 6)
-    .select(dfTxn.txid,
-      dfTxn.round,
-      dfTxn.intra,
-      dfTxn.txn_fee,
-      dfTxn.txn_snd,
-      dfTxn.txn_apid,
-      dfTxn.txn_apap,
-      dfTxn.txn_apgs,
-      dfTxn.txn_apls,
-      dfTxn.txn_apsu,
-      dfTxn.txn_apan,
-      dfTxn.txn_apaa,
-      dfTxn.txn_apas,
-      dfTxn.txn_apat,
-      dfTxn.txn_apfa,
-      dfTxn.txn_apep,
-      dfTxn.asset,
-      dfTxn.txn_note)
+  val dfApplicationCallTx = dfTxn.filter(col("typeenum") === 6)
+    .select(col("txid"),
+      col("round"),
+      col("intra"),
+      col("txn_fee"),
+      col("txn_snd"),
+      col("txn_apid"),
+      col("txn_apap"),
+      col("txn_apgs"),
+      col("txn_apls"),
+      col("txn_apsu"),
+      col("txn_apan"),
+      col("txn_apaa"),
+      col("txn_apas"),
+      col("txn_apat"),
+      col("txn_apfa"),
+      col("txn_apep"),
+      col("asset"),
+      col("txn_note"))
 
-  from pyspark
-  .sql.functions
 
-  import when
-
-  dfApplicationCallTx = dfApplicationCallTx.withColumn('applicationCallType
-  ',
-  when(fn.col("txn_apan").isNull() & fn.col("txn_apid").isNull() & fn.col("txn_apap").isNotNull() & fn.col("txn_apsu").isNotNull(), "create")
-    .when(fn.col("txn_apan") == 4, "update")
-    .when(fn.col("txn_apan") == 5, "delete")
-    .when(fn.col("txn_apan") == 1, "opt-in")
-    .when(fn.col("txn_apan") == 2, "close-out")
-    .when(fn.col("txn_apan") == 3, "clear-state")
+   // TODO checken dass das richtig ist wenn when importiert ist
+  dfApplicationCallTx = dfApplicationCallTx.withColumn("applicationCallType",
+  when(dfApplicationCallTx.col("txn_apan").isNull() && dfApplicationCallTx.col("txn_apid").isNull() && dfApplicationCallTx.col("txn_apap").isNotNull() && dfApplicationCallTx.col("txn_apsu").isNotNull(), "create")
+    .when(dfApplicationCallTx.col("txn_apan") === 4, "update")
+    .when(dfApplicationCallTx.col("txn_apan") === 5, "delete")
+    .when(dfApplicationCallTx.col("txn_apan") === 1, "opt-in")
+    .when(dfApplicationCallTx.col("txn_apan") === 2, "close-out")
+    .when(dfApplicationCallTx.col("txn_apan") === 3, "clear-state")
     .otherwise("noOp")
   )
 
-  dfApplications = dfApplicationCallTx.select(dfApplicationCallTx.asset.alias("application")).distinct()
+  val dfApplications = dfApplicationCallTx.select(dfApplicationCallTx.col("asset").alias("application")).distinct()
 
   dfApplications.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Application")
     .option("node.keys", "application")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
-  dfApplicationAccounts = dfApplicationCallTx.select(dfApplicationCallTx.txn_snd.alias("account")).distinct()
+  val dfApplicationAccounts = dfApplicationCallTx.select(dfApplicationCallTx.col("txn_snd").alias("account")).distinct()
 
   dfApplicationAccounts.write.format("org.neo4j.spark.DataSource")
-    .mode("Overwrite")
+    .mode(SaveMode.Overwrite)
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    .option("batch.size", BATCH_SIZE)
     .save()
 
   dfApplicationCallTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .mode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "APPLICATION_CALL")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -427,6 +427,7 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "asset:application")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, applicationCallType, txn_apan:applicationCallTypeEnum, txn_apid:applicationId, txn_apap:approvalProgam, txn_apsu:clearProgram, txn_apaa:applicationCallArguments, txn_apat:accountsList, txn_apfa:applicationsList, txn_apas:assetsList")
+    .option("batch.size", BATCH_SIZE)
     .save()
 }
 
