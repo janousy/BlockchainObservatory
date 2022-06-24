@@ -117,7 +117,316 @@ object GraphBuilder extends App {
     .option("url", "bolt://172.23.149.212:7687")
     .option("labels", ":Account")
     .option("node.keys", "account")
+    //TODO: change this when converting to stream
+    .option("batch.size", 5000 * 10)
     .mode(SaveMode.Overwrite)
+    .save()
+
+  dfPaymentTx.write
+    .format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode(SaveMode.Append)
+    .option("relationship", "PAYMENT")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":Account")
+    .option("relationship.target.save.mode", "Overwrite")
+    .option("relationship.target.node.keys", "txn_rcv:account")
+    .option("relationship.properties", "txn_amt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_close:closedSndAccountTx")
+    //TODO: change this when converting to stream
+    .option("batch.size", 5000 * 10)
+    .save()
+
+  dfKeyregTx = dfTxn.filter(col("typeenum") === 2)
+    .select(col("txid"),
+      col("round"),
+      col("intra"),
+      col("txn_fee"),
+      col("txn_snd"),
+      col("txn_selkey"),
+      col("txn_votefst"),
+      col("txn_votekd"),
+      col("txn_votekey"),
+      col("txn_votelst"))
+
+  from pyspark
+  .sql.functions
+
+  import when
+
+  dfKeyregTx = dfKeyregTx.withColumn('keyRegistrationType
+  ',
+  when(fn.col("txn_selkey").isNotNull() | fn.col("txn_votefst").isNotNull() | fn.col("txn_votekd").isNotNull() | fn.col("txn_votekey").isNotNull() | fn.col("txn_votelst").isNotNull(), "online")
+    .otherwise("offline")
+  )
+  .withColumn('txn_rcv
+  ', fn.lit(0)
+  )
+
+  dfParticipationNodes = dfKeyregTx.select(dfKeyregTx.txn_rcv.alias("id")).distinct()
+
+  dfParticipationNodes.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":ParticipationNode")
+    .option("node.keys", "id")
+    .save()
+
+  dfKeyRegAccounts = dfKeyregTx.select(dfKeyregTx.txn_snd.alias("account")).distinct()
+
+  dfKeyRegAccounts.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Account")
+    .option("node.keys", "account")
+    .save()
+
+  dfKeyregTx.write.format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode("Append")
+    .option("relationship", "KEY_REGISTRATION")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":ParticipationNode")
+    .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, keyRegistrationType:keyRegistrationType")
+    .save()
+
+  dfAssetConfigTx = dfTxn.filter(dfTxn.typeenum == 3)
+    .select(dfTxn.txid,
+      dfTxn.round,
+      dfTxn.intra,
+      dfTxn.txn_fee,
+      dfTxn.txn_snd,
+      dfTxn.txn_caid,
+      dfTxn.txn_apar,
+      dfTxn.asset)
+
+  from pyspark
+  .sql.functions
+
+  import when
+
+  dfAssetConfigTx = dfAssetConfigTx.withColumn('configurationType
+  ',
+  when(fn.col("txn_caid").isNull(), "creation")
+    .when(fn.col("txn_caid").isNotNull() & fn.col("txn_apar").isNotNull(), "configuration")
+    .when(fn.col("txn_caid").isNotNull() & fn.col("txn_apar").isNull(), "destruction")
+  )
+
+  dfAssetAccountsConfig = dfAssetConfigTx.select(dfAssetConfigTx.txn_snd.alias("account")).distinct()
+
+  dfAssetAccountsConfig.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Account")
+    .option("node.keys", "account")
+    .save()
+
+  dfAssets = dfAssetConfigTx.select(dfAssetConfigTx.asset.alias("asset")).distinct()
+
+  dfAssets.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Asset")
+    .option("node.keys", "asset")
+    .save()
+
+  dfAssetConfigTx.write.format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode("Append")
+    .option("relationship", "ASSET_CONFIGURATION")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":Asset")
+    .option("relationship.target.save.mode", "Overwrite")
+    .option("relationship.target.node.keys", "asset:asset")
+    .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_caid:assetId, txn_apar:configurationParameters, configurationType:configurationType")
+    .save()
+
+  dfAssetTransferTx = dfTxn.filter(dfTxn.typeenum == 4)
+    .select(dfTxn.txid,
+      dfTxn.round,
+      dfTxn.intra,
+      dfTxn.txn_fee,
+      dfTxn.txn_snd,
+      dfTxn.txn_arcv,
+      dfTxn.txn_aamt,
+      dfTxn.txn_asnd,
+      dfTxn.asset,
+      dfTxn.txn_xaid)
+
+  from pyspark
+  .sql.functions
+
+  import when
+
+  dfAssetTransferTx = dfAssetTransferTx.withColumn('transferType
+  ',
+  when(fn.col("txn_asnd").isNotNull(), "revoke")
+    .when(fn.col("txn_snd") == fn.col("txn_arcv"), "opt-in")
+    .otherwise("transfer")
+  )
+
+  dfAssets = dfAssetTransferTx.select(dfAssetTransferTx.txn_xaid.alias("asset")).distinct()
+
+  dfAssets.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Asset")
+    .option("node.keys", "asset")
+    .save()
+
+  dfTxnSender = dfAssetTransferTx.select(dfAssetTransferTx.txn_snd.alias("account"))
+  dfTxnReceiver = dfAssetTransferTx.select(dfAssetTransferTx.txn_arcv.alias("account"))
+  dfAssetAccounts = dfTxnSender.union(dfTxnReceiver).distinct()
+
+  dfAssetAccounts.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Account")
+    .option("node.keys", "account")
+    .save()
+
+  dfAssetTransferTx.write.format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode("Append")
+    .option("relationship", "ASSET_TRANSFER")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":Account")
+    .option("relationship.target.save.mode", "Overwrite")
+    .option("relationship.target.node.keys", "txn_arcv:account")
+    .option("relationship.properties", "txn_aamt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_xaid:assetId, txn_asnd:assetSenderInRevokingTx, transferType")
+    .save()
+
+  dfAssetFreezeTx = dfTxn.filter(dfTxn.typeenum == 5)
+    .select(dfTxn.txid,
+      dfTxn.round,
+      dfTxn.intra,
+      dfTxn.txn_fee,
+      dfTxn.txn_snd,
+      dfTxn.txn_afrz,
+      dfTxn.txn_fadd,
+      dfTxn.txn_faid,
+      dfTxn.asset)
+
+  from pyspark
+  .sql.functions
+
+  import when
+
+  dfAssetFreezeTx = dfAssetFreezeTx.withColumn('freezeType
+  ',
+  when(fn.col("txn_afrz") == "true", "freeze")
+    .when(fn.col("txn_afrz") == "false", "unfreeze")
+  )
+
+  dfAssetsFreeze = dfAssetFreezeTx.select(dfAssetFreezeTx.asset.alias("asset")).distinct()
+
+  dfAssetsFreeze.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Asset")
+    .option("node.keys", "asset")
+    .save()
+
+  dfAssetFreezeAccounts = dfAssetFreezeTx.select(dfAssetFreezeTx.txn_snd.alias("account")).distinct()
+
+  dfAssetFreezeAccounts.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Account")
+    .option("node.keys", "account")
+    .save()
+
+  dfAssetFreezeTx.write.format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode("Append")
+    .option("relationship", "ASSET_FREEZE")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":Asset")
+    .option("relationship.target.save.mode", "Overwrite")
+    .option("relationship.target.node.keys", "asset:asset")
+    .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_fadd:frozenAssetAccountHolder, txn_faid:assetIdBeingFrozen, freezeType:freezeType")
+    .save()
+
+  dfApplicationCallTx = dfTxn.filter(dfTxn.typeenum == 6)
+    .select(dfTxn.txid,
+      dfTxn.round,
+      dfTxn.intra,
+      dfTxn.txn_fee,
+      dfTxn.txn_snd,
+      dfTxn.txn_apid,
+      dfTxn.txn_apap,
+      dfTxn.txn_apgs,
+      dfTxn.txn_apls,
+      dfTxn.txn_apsu,
+      dfTxn.txn_apan,
+      dfTxn.txn_apaa,
+      dfTxn.txn_apas,
+      dfTxn.txn_apat,
+      dfTxn.txn_apfa,
+      dfTxn.txn_apep,
+      dfTxn.asset,
+      dfTxn.txn_note)
+
+  from pyspark
+  .sql.functions
+
+  import when
+
+  dfApplicationCallTx = dfApplicationCallTx.withColumn('applicationCallType
+  ',
+  when(fn.col("txn_apan").isNull() & fn.col("txn_apid").isNull() & fn.col("txn_apap").isNotNull() & fn.col("txn_apsu").isNotNull(), "create")
+    .when(fn.col("txn_apan") == 4, "update")
+    .when(fn.col("txn_apan") == 5, "delete")
+    .when(fn.col("txn_apan") == 1, "opt-in")
+    .when(fn.col("txn_apan") == 2, "close-out")
+    .when(fn.col("txn_apan") == 3, "clear-state")
+    .otherwise("noOp")
+  )
+
+  dfApplications = dfApplicationCallTx.select(dfApplicationCallTx.asset.alias("application")).distinct()
+
+  dfApplications.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Application")
+    .option("node.keys", "application")
+    .save()
+
+  dfApplicationAccounts = dfApplicationCallTx.select(dfApplicationCallTx.txn_snd.alias("account")).distinct()
+
+  dfApplicationAccounts.write.format("org.neo4j.spark.DataSource")
+    .mode("Overwrite")
+    .option("url", "bolt://172.23.149.212:7687")
+    .option("labels", ":Account")
+    .option("node.keys", "account")
+    .save()
+
+  dfApplicationCallTx.write.format("org.neo4j.spark.DataSource")
+    .option("url", "bolt://172.23.149.212:7687")
+    .mode("Append")
+    .option("relationship", "APPLICATION_CALL")
+    .option("relationship.save.strategy", "keys")
+    .option("relationship.source.labels", ":Account")
+    .option("relationship.source.save.mode", "Overwrite")
+    .option("relationship.source.node.keys", "txn_snd:account")
+    .option("relationship.target.labels", ":Application")
+    .option("relationship.target.save.mode", "Overwrite")
+    .option("relationship.target.node.keys", "asset:application")
+    .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, applicationCallType, txn_apan:applicationCallTypeEnum, txn_apid:applicationId, txn_apap:approvalProgam, txn_apsu:clearProgram, txn_apaa:applicationCallArguments, txn_apat:accountsList, txn_apfa:applicationsList, txn_apas:assetsList")
     .save()
 }
 
