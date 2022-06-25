@@ -1,28 +1,25 @@
 package neo4j
 
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, lit, when}
-import org.apache.spark.sql.streaming.Trigger
-import org.apache.spark.sql.types.{BooleanType, LongType, StringType, StructType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.slf4j.{Logger, LoggerFactory}
+import org.apache.spark.sql.functions.{col, lit, when}
+import org.apache.spark.sql.types.{BooleanType, LongType, StringType, StructType}
+import org.slf4j.LoggerFactory
 
-object GraphBuilder extends App {
+object BatchGraphBuilder extends App {
   val LOGGER = LoggerFactory.getLogger("CustomLogs")
 
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
-  final val MONGODB_SOURCE_DB: String = "algorand"
+  final val MONGODB_SOURCE_DB: String = "test"
   final val MONGODB_SOURCE_COLLECT: String = "txn"
 
   //TODO: change this when converting to stream
-  // spark.batch_size should not be too large as MongoDB cursor will time out.
+  // spark.batch_size should no be too large as MongoDB cursor will time out.
   final val BATCH_SIZE: Int = 5000
   final val MAX_CORES: String = "1"
-  final val WRITE_TRIGGER: Trigger = Trigger.Continuous("10 second")
 
   val spark = SparkSession
     .builder()
-    .appName("Neo4j Graph-Builder Stream")
+    .appName("Neo4j Graph-Builder Batch")
     .master(SPARK_MASTER)
     .config("spark.executor.memory", "32g")
     .config("spark.executor.cores", "1")
@@ -109,7 +106,7 @@ object GraphBuilder extends App {
     .add("txn_lsig", StringType)
 
   println("Reading from MongoDB at %s:%s", MONGODB_SOURCE_DB, MONGODB_SOURCE_COLLECT)
-  val dfTxn = spark.readStream.format("mongodb")
+  val dfTxn = spark.read.format("mongodb")
     .option("spark.mongodb.connection.uri", "mongodb://172.23.149.212:27017")
     .option("spark.mongodb.database", MONGODB_SOURCE_DB)
     .option("spark.mongodb.collection", MONGODB_SOURCE_COLLECT)
@@ -123,10 +120,10 @@ object GraphBuilder extends App {
     .select(col("txid"), col("txn_snd"), col("txn_rcv"), col("txn_amt"), col("txn_fee"),
       col("round"), col("intra"), col("txn_close"))
 
-  dfPaymentTx.writeStream
+  dfPaymentTx.write
     .format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "PAYMENT")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -136,8 +133,8 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "txn_rcv:account")
     .option("relationship.properties", "txn_amt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_close:closedSndAccountTx")
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .option("batch.size", BATCH_SIZE)
+    .save()
 
   var dfKeyRegTx = dfTxn.filter(col("typeenum") === 2)
     .select(col("txid"),
@@ -159,9 +156,9 @@ object GraphBuilder extends App {
   .withColumn("txn_rcv", lit(0))
 
 
-  dfKeyRegTx.writeStream.format("org.neo4j.spark.DataSource")
+  dfKeyRegTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode("Append")
     .option("relationship", "KEY_REGISTRATION")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -169,8 +166,8 @@ object GraphBuilder extends App {
     .option("relationship.source.node.keys", "txn_snd:account")
     .option("relationship.target.labels", ":ParticipationNode")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, keyRegistrationType:keyRegistrationType")
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .option("batch.size", BATCH_SIZE)
+    .save()
 
   var dfAssetConfigTx = dfTxn.filter(dfTxn.col("typeenum") === 3)
     .select(dfTxn.col("txid"),
@@ -188,9 +185,9 @@ object GraphBuilder extends App {
     .when(col("txn_caid").isNotNull() && col("txn_apar").isNull(), "destruction")
   )
 
-  dfAssetConfigTx.writeStream.format("org.neo4j.spark.DataSource")
+  dfAssetConfigTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_CONFIGURATION")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -200,8 +197,8 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "asset:asset")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_caid:assetId, txn_apar:configurationParameters, configurationType:configurationType")
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .option("batch.size", BATCH_SIZE)
+    .save()
 
   var dfAssetTransferTx = dfTxn.filter(dfTxn.col("typeenum") === 4)
     .select(dfTxn.col("txid"),
@@ -221,9 +218,9 @@ object GraphBuilder extends App {
     .otherwise("transfer")
   )
 
-  dfAssetTransferTx.writeStream.format("org.neo4j.spark.DataSource")
+  dfAssetTransferTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_TRANSFER")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -233,8 +230,8 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "txn_arcv:account")
     .option("relationship.properties", "txn_aamt:amount, txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_xaid:assetId, txn_asnd:assetSenderInRevokingTx, transferType")
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .option("batch.size", BATCH_SIZE)
+    .save()
 
   var dfAssetFreezeTx = dfTxn.filter(col("typeenum") === 5)
     .select(col("txid"),
@@ -252,9 +249,9 @@ object GraphBuilder extends App {
     .when(dfAssetFreezeTx.col("txn_afrz") === "false", "unfreeze")
   )
 
-  dfAssetFreezeTx.writeStream.format("org.neo4j.spark.DataSource")
+  dfAssetFreezeTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "ASSET_FREEZE")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -264,8 +261,8 @@ object GraphBuilder extends App {
     .option("relationship.target.save.mode", "Overwrite")
     .option("relationship.target.node.keys", "asset:asset")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, txn_fadd:frozenAssetAccountHolder, txn_faid:assetIdBeingFrozen, freezeType:freezeType")
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .option("batch.size", BATCH_SIZE)
+    .save()
 
   var dfApplicationCallTx = dfTxn.filter(col("typeenum") === 6)
     .select(col("txid"),
@@ -298,9 +295,9 @@ object GraphBuilder extends App {
     .otherwise("noOp")
   )
 
-  dfApplicationCallTx.writeStream.format("org.neo4j.spark.DataSource")
+  dfApplicationCallTx.write.format("org.neo4j.spark.DataSource")
     .option("url", "bolt://172.23.149.212:7687")
-    .outputMode("Append")
+    .mode(SaveMode.Append)
     .option("relationship", "APPLICATION_CALL")
     .option("relationship.save.strategy", "keys")
     .option("relationship.source.labels", ":Account")
@@ -311,7 +308,6 @@ object GraphBuilder extends App {
     .option("relationship.target.node.keys", "asset:application")
     .option("relationship.properties", "txn_fee:fee, round:blockNumber, intra:intraBlockTxNumber, txid:txId, applicationCallType, txn_apan:applicationCallTypeEnum, txn_apid:applicationId, txn_apap:approvalProgam, txn_apsu:clearProgram, txn_apaa:applicationCallArguments, txn_apat:accountsList, txn_apfa:applicationsList, txn_apas:assetsList")
     .option("batch.size", BATCH_SIZE)
-    .trigger(WRITE_TRIGGER)
-    .start().awaitTermination()
+    .save()
 }
 

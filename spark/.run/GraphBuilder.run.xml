@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="GraphBuilder" type="SparkSubmitConfigurationType" factoryName="SshSparkJobConfigurationType" show_console_on_std_err="false" show_console_on_std_out="false">
+  <configuration default="false" name="BatchGraphBuilder" type="SparkSubmitConfigurationType" factoryName="SshSparkJobConfigurationType" show_console_on_std_err="false" show_console_on_std_out="false">
     <option name="allowRunningInParallel" value="false" />
     <option name="archives">
       <list />
@@ -12,7 +12,7 @@
       </FilePath>
     </option>
     <option name="beforeShellScript" value="" />
-    <option name="className" value="neo4j.GraphBuilder" />
+    <option name="className" value="neo4j.BatchGraphBuilder" />
     <option name="clusterManager" value="STANDALONE" />
     <option name="conf" value="" />
     <option name="deployMode" value="CLUSTER" />
