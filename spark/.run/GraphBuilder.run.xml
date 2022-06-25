@@ -15,7 +15,7 @@
     <option name="className" value="neo4j.GraphBuilder" />
     <option name="clusterManager" value="STANDALONE" />
     <option name="conf" value="" />
-    <option name="deployMode" value="CLIENT" />
+    <option name="deployMode" value="CLUSTER" />
     <option name="driverClassPath">
       <list />
     </option>

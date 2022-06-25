@@ -38,8 +38,7 @@ object GraphBuilder extends App {
     .config("spark.executor.logs.rolling.strategy", "time")
     .config("spark.executor.logs.rolling.time.interval", "minutely")
     .config("spark.executor.logs.rolling.maxRetainedFiles", "3")
-    .config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector:10.0.2")
-
+    //.config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector:10.0.2")
   .getOrCreate()
 
   spark.sparkContext.setLogLevel("INFO")

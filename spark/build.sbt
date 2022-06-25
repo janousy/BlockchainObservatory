@@ -8,6 +8,9 @@ lazy val root = (project in file("."))
 
     libraryDependencies += "org.apache.spark" %% "spark-core" % SPARK_VERSION % "provided",
     libraryDependencies += "org.apache.spark" %% "spark-sql" % SPARK_VERSION % "provided",
+    // https://mvnrepository.com/artifact/org.mongodb.spark/mongo-spark-connector
+    libraryDependencies += "org.mongodb.spark" % "mongo-spark-connector" % "10.0.2",
+    // Neo4j is not loaded here intentionally due to submit issues.
   )
 
 logLevel := Level.Info
