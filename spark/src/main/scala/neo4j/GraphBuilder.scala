@@ -14,21 +14,23 @@ object GraphBuilder extends App {
   final val MONGODB_SOURCE_COLLECT: String = "txn"
 
   //TODO: change this when converting to stream
-  final val BATCH_SIZE: Int = 50000
+  // spark.batch_size should no be too large as MongoDB cursor will time out.
+  final val BATCH_SIZE: Int = 5000
+  final val MAX_CORES: String = "3"
 
   val spark = SparkSession
     .builder()
-    .appName("Neo4j Graph-Builder")
+    .appName("Neo4j Graph-Builder MultiThread")
     .master(SPARK_MASTER)
     .config("spark.executor.memory", "32g")
     .config("spark.executor.cores", "1")
-    .config("spark.cores.max", "1")
+    .config("spark.cores.max", MAX_CORES)
     .config("spark.driver.memory", "8g")
     .config("spark.dynamicAllocation.enabled", "true")
     .config("spark.dynamicAllocation.shuffleTracking.enabled", "true")
     .config("spark.dynamicAllocation.executorIdleTimeout", "60s")
     .config("spark.dynamicAllocation.minExecutors", "1")
-    .config("spark.dynamicAllocation.maxExecutors", "1")
+    .config("spark.dynamicAllocation.maxExecutors", MAX_CORES)
     .config("spark.dynamicAllocation.initialExecutors", "1")
     .config("spark.dynamicAllocation.executorAllocationRatio", "1")
     .config("spark.worker.cleanup.enabled", "true")
@@ -36,7 +38,7 @@ object GraphBuilder extends App {
     .config("spark.shuffle.service.db.enabled", "true")
     .config("spark.worker.cleanup.appDataTtl", "60")
     .config("spark.executor.logs.rolling.strategy", "time")
-    .config("spark.executor.logs.rolling.time.interval", "minutely")
+    .config("spark.executor.logs.rolling.time.interval", "hourly")
     .config("spark.executor.logs.rolling.maxRetainedFiles", "3")
     //.config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector:10.0.2")
   .getOrCreate()
