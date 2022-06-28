@@ -1,30 +1,30 @@
 package neo4j
 
-import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, lit, when}
 import org.apache.spark.sql.types.{BooleanType, LongType, StringType, StructType}
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.slf4j.LoggerFactory
 
 object BatchGraphBuilder extends App {
-  val LOGGER = LoggerFactory.getLogger("CustomLogs")
-
   final val SPARK_MASTER: String = "spark://172.23.149.212:7077"
-  final val MONGODB_SOURCE_DB: String = "test"
+  final val MONGODB_SOURCE_DB: String = "algorand"
   final val MONGODB_SOURCE_COLLECT: String = "txn"
-
   //TODO: change this when converting to stream
   // spark.batch_size should no be too large as MongoDB cursor will time out.
   final val BATCH_SIZE: Int = 5000
+  final val BATCH_LIMIT_UPPER: Int = 50000000
+  final val BATCH_LIMIT_LOWER: Int = 0
   final val MAX_CORES: String = "1"
 
+  val LOGGER = LoggerFactory.getLogger("CustomLogs")
   val spark = SparkSession
     .builder()
-    .appName("Neo4j Graph-Builder Batch")
+    .appName("Neo4j Graph-Builder Batch (50*10^6)")
     .master(SPARK_MASTER)
-    .config("spark.executor.memory", "32g")
+    .config("spark.executor.memory", "16g")
     .config("spark.executor.cores", "1")
     .config("spark.cores.max", MAX_CORES)
-    .config("spark.driver.memory", "8g")
+    .config("spark.driver.memory", "4g")
     .config("spark.dynamicAllocation.enabled", "true")
     .config("spark.dynamicAllocation.shuffleTracking.enabled", "true")
     .config("spark.dynamicAllocation.executorIdleTimeout", "60s")
@@ -39,8 +39,7 @@ object BatchGraphBuilder extends App {
     .config("spark.executor.logs.rolling.strategy", "time")
     .config("spark.executor.logs.rolling.time.interval", "hourly")
     .config("spark.executor.logs.rolling.maxRetainedFiles", "3")
-    //.config("spark.jars.packages", "org.mongodb.spark:mongo-spark-connector:10.0.2")
-  .getOrCreate()
+    .getOrCreate()
 
   spark.sparkContext.setLogLevel("INFO")
 
@@ -106,6 +105,8 @@ object BatchGraphBuilder extends App {
     .add("txn_lsig", StringType)
 
   println("Reading from MongoDB at %s:%s", MONGODB_SOURCE_DB, MONGODB_SOURCE_COLLECT)
+  println("Batch limit set to: ", BATCH_LIMIT_UPPER)
+
   val dfTxn = spark.read.format("mongodb")
     .option("spark.mongodb.connection.uri", "mongodb://172.23.149.212:27017")
     .option("spark.mongodb.database", MONGODB_SOURCE_DB)
@@ -115,6 +116,7 @@ object BatchGraphBuilder extends App {
     .option("forceDeleteTempCheckpointLocation", "true")
     .schema(schema)
     .load()
+    .where(col("round") < BATCH_LIMIT_UPPER)
 
   val dfPaymentTx = dfTxn.filter(col("typeenum") === 1)
     .select(col("txid"), col("txn_snd"), col("txn_rcv"), col("txn_amt"), col("txn_fee"),
@@ -149,11 +151,11 @@ object BatchGraphBuilder extends App {
       col("txn_votelst"))
 
   dfKeyRegTx = dfKeyRegTx.withColumn("keyRegistrationType",
-  when(col("txn_selkey").isNotNull() || col("txn_votefst").isNotNull()
-    || col("txn_votekd").isNotNull() || col("txn_votekey").isNotNull()
-    || col("txn_votelst").isNotNull(), "online")
-    .otherwise("offline"))
-  .withColumn("txn_rcv", lit(0))
+    when(col("txn_selkey").isNotNull() || col("txn_votefst").isNotNull()
+      || col("txn_votekd").isNotNull() || col("txn_votekey").isNotNull()
+      || col("txn_votelst").isNotNull(), "online")
+      .otherwise("offline"))
+    .withColumn("txn_rcv", lit(0))
 
 
   dfKeyRegTx.write.format("org.neo4j.spark.DataSource")
@@ -180,9 +182,9 @@ object BatchGraphBuilder extends App {
       dfTxn.col("asset"))
 
   dfAssetConfigTx = dfAssetConfigTx.withColumn("configurationType",
-  when(col("txn_caid").isNull(), "creation")
-    .when(col("txn_caid").isNotNull() && col("txn_apar").isNotNull(), "configuration")
-    .when(col("txn_caid").isNotNull() && col("txn_apar").isNull(), "destruction")
+    when(col("txn_caid").isNull(), "creation")
+      .when(col("txn_caid").isNotNull() && col("txn_apar").isNotNull(), "configuration")
+      .when(col("txn_caid").isNotNull() && col("txn_apar").isNull(), "destruction")
   )
 
   dfAssetConfigTx.write.format("org.neo4j.spark.DataSource")
@@ -213,9 +215,9 @@ object BatchGraphBuilder extends App {
       dfTxn.col("txn_xaid"))
 
   dfAssetTransferTx = dfAssetTransferTx.withColumn("transferType",
-  when(col("txn_asnd").isNotNull(), "revoke")
-    .when(col("txn_snd") === col("txn_arcv"), "opt-in")
-    .otherwise("transfer")
+    when(col("txn_asnd").isNotNull(), "revoke")
+      .when(col("txn_snd") === col("txn_arcv"), "opt-in")
+      .otherwise("transfer")
   )
 
   dfAssetTransferTx.write.format("org.neo4j.spark.DataSource")
@@ -245,8 +247,8 @@ object BatchGraphBuilder extends App {
       col("asset"))
 
   dfAssetFreezeTx = dfAssetFreezeTx.withColumn("freezeType",
-  when(dfAssetFreezeTx.col("txn_afrz") === "true", "freeze")
-    .when(dfAssetFreezeTx.col("txn_afrz") === "false", "unfreeze")
+    when(dfAssetFreezeTx.col("txn_afrz") === "true", "freeze")
+      .when(dfAssetFreezeTx.col("txn_afrz") === "false", "unfreeze")
   )
 
   dfAssetFreezeTx.write.format("org.neo4j.spark.DataSource")
@@ -286,13 +288,13 @@ object BatchGraphBuilder extends App {
 
 
   dfApplicationCallTx = dfApplicationCallTx.withColumn("applicationCallType",
-  when(dfApplicationCallTx.col("txn_apan").isNull() && dfApplicationCallTx.col("txn_apid").isNull() && dfApplicationCallTx.col("txn_apap").isNotNull() && dfApplicationCallTx.col("txn_apsu").isNotNull(), "create")
-    .when(dfApplicationCallTx.col("txn_apan") === 4, "update")
-    .when(dfApplicationCallTx.col("txn_apan") === 5, "delete")
-    .when(dfApplicationCallTx.col("txn_apan") === 1, "opt-in")
-    .when(dfApplicationCallTx.col("txn_apan") === 2, "close-out")
-    .when(dfApplicationCallTx.col("txn_apan") === 3, "clear-state")
-    .otherwise("noOp")
+    when(dfApplicationCallTx.col("txn_apan").isNull() && dfApplicationCallTx.col("txn_apid").isNull() && dfApplicationCallTx.col("txn_apap").isNotNull() && dfApplicationCallTx.col("txn_apsu").isNotNull(), "create")
+      .when(dfApplicationCallTx.col("txn_apan") === 4, "update")
+      .when(dfApplicationCallTx.col("txn_apan") === 5, "delete")
+      .when(dfApplicationCallTx.col("txn_apan") === 1, "opt-in")
+      .when(dfApplicationCallTx.col("txn_apan") === 2, "close-out")
+      .when(dfApplicationCallTx.col("txn_apan") === 3, "clear-state")
+      .otherwise("noOp")
   )
 
   dfApplicationCallTx.write.format("org.neo4j.spark.DataSource")
