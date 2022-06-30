@@ -11,15 +11,15 @@ object BatchGraphBuilder extends App {
   final val MONGODB_SOURCE_COLLECT: String = "txn"
   //TODO: change this when converting to stream
   // spark.batch_size should no be too large as MongoDB cursor will time out.
-  final val BATCH_SIZE: Int = 5000
-  final val BATCH_LIMIT_UPPER: Int = 50000000
+  final val BATCH_SIZE: Int = 2500
+  final val BATCH_LIMIT_UPPER: Int = 10000000
   final val BATCH_LIMIT_LOWER: Int = 0
   final val MAX_CORES: String = "1"
 
   val LOGGER = LoggerFactory.getLogger("CustomLogs")
   val spark = SparkSession
     .builder()
-    .appName("Neo4j Graph-Builder Batch (50*10^6)")
+    .appName("Neo4j Graph-Builder Batch (10*10^6)")
     .master(SPARK_MASTER)
     .config("spark.executor.memory", "16g")
     .config("spark.executor.cores", "1")
