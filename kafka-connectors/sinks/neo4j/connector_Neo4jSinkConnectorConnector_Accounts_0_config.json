@@ -1,6 +1,7 @@
 {
-  "name": "Neo4jSinkConnectorConnector_Txn_0",
+  "name": "Neo4jSinkConnectorConnector_Account_0",
   "config": {
+    "kafka.auto.offset.reset": "earliest",
     "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "errors.log.enable": "true",
@@ -9,6 +10,6 @@
     "neo4j.authentication.type": "NONE",
     "neo4j.server.uri": "bolt://172.23.149.212:7687",
     "value.converter.schemas.enable": "false",
-    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "MERGE (snd:Account1{txn_snd: event.txn_snd}) MERGE (snd:Account1{txn_snd: event.txn_snd}) MERGE (rcv:Account1{round: event.round}) MERGE (snd)-[:PAYMENT1{txid: event.txid}]->(rcv)" MERGE (rcv:Account1{round: event.round}) MERGE (snd)-[:PAYMENT1{txid: event.txid}]->(rcv)"
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "CREATE (snd:Account2{txn_snd: event.txn_snd}) CREATE (rcv:Account2{round: event.round}) CREATE (snd)-[:PAYMENT2{txid: event.txid}]->(rcv)"
   }
 }
