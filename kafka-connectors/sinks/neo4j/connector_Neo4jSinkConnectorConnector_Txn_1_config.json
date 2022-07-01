@@ -9,6 +9,6 @@
     "neo4j.authentication.type": "NONE",
     "neo4j.server.uri": "bolt://172.23.149.212:7687",
     "value.converter.schemas.enable": "false",
-    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "MERGE (snd:Account{account: event.txn_snd}) MERGE (rcv:Account{account: event.round}) CREATE (snd)-[:PAYMENT{txid: event.txid}]->(rcv)"
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.txn_rcv IS NULL THEN [] ELSE [1] END | MERGE (rcv:Account{account: event.txn_rcv}))"
   }
 }
