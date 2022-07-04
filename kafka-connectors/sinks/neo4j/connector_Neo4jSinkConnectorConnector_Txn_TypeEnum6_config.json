@@ -1,0 +1,14 @@
+{
+  "name": "Neo4jSinkConnectorConnector_Txn_0",
+  "config": {
+    "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    "topics": "algod_indexer_public_txn_flat",
+    "neo4j.authentication.type": "NONE",
+    "neo4j.server.uri": "bolt://172.23.149.212:7687",
+    "value.converter.schemas.enable": "false",
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.typeenum = 6 THEN [1] ELSE [] END | MERGE (snd:Account{account: event.txn_snd}) MERGE (app:Application{application: event.asset}) CREATE (snd)-[:APPLICATION_CALL {txid: event.txid, fee: event.txn_fee, blockNumber: event.round, intraBlockNumber: event.intra, applicationCallTypeEnum: event.txn_apan, applicationId: event.txn_apid, approvalProgram: event.txn_apap, clearProgram: event.txn_apsu, applicationCallArguments: event.txn_apaa, accountsList: event.txn_apat, applicationsList: event.txn_apfa, assetsList: event.txn_apas, applicationCallType: CASE WHEN event.txn_apan IS NULL AND event.txn_apid IS NULL THEN \"create\" WHEN event.txn_apan = 1 THEN \"opt-in\" WHEN event.txn_apan = 2 THEN \"close-out\" WHEN event.txn_apan = 3 THEN \"clear-state\" WHEN event.txn_apan = 4 THEN \"update\" WHEN event.txn_apan = 5 THEN \"delete\" ELSE \"noOp\" END}]->(app) )"
+  }
+}
