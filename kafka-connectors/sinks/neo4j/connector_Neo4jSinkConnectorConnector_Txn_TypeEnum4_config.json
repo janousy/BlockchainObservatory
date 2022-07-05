@@ -9,6 +9,6 @@
     "neo4j.authentication.type": "NONE",
     "neo4j.server.uri": "bolt://172.23.149.212:7687",
     "value.converter.schemas.enable": "false",
-    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.typeenum = 4 THEN [1] ELSE [] END | MERGE (snd:Account{account: event.txn_snd}) MERGE (asset:Asset{asset: event.asset}) MERGE (rcv:Account{account: event.txn_arcv}) CREATE (snd)-[:ASSET_TRANSFER {txid: event.txid, fee: event.txn_fee, blockNumber: event.round, intraBlockNumber: event.intra, amount: event.txn_aamt, assetId: event.txn_xaid, assetSenderInRevokingTx: event.txn_asnd, transferType: CASE WHEN event.txn_asnd IS NOT NULL THEN \"revoke\" WHEN event.txn_snd = event.txn_arcv THEN \"opt-in\" ELSE \"transfer\" END}]->(rcv) )"
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.typeenum = 4 AND event.row_arcv IS NOT NULL THEN [1] ELSE [] END | MERGE (snd:Account{account: event.txn_snd}) MERGE (asset:Asset{asset: event.asset}) MERGE (rcv:Account{account: event.txn_arcv}) CREATE (snd)-[:ASSET_TRANSFER {txid: event.txid, fee: event.txn_fee, blockNumber: event.round, intraBlockNumber: event.intra, amount: event.txn_aamt, assetId: event.txn_xaid, assetSenderInRevokingTx: event.txn_asnd, transferType: CASE WHEN event.txn_asnd IS NOT NULL THEN \"revoke\" WHEN event.txn_snd = event.txn_arcv THEN \"opt-in\" ELSE \"transfer\" END}]->(rcv) )"
   }
 }
