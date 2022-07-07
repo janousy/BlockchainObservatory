@@ -9,6 +9,6 @@
     "neo4j.authentication.type": "NONE",
     "neo4j.server.uri": "bolt://172.23.149.212:7687",
     "value.converter.schemas.enable": "false",
-    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "MERGE (snd:Account1{txn_snd: event.txn_snd}) MERGE (rcv:Account1{round: event.round}) MERGE (snd)-[:PAYMENT1{txid: event.txid}]->(rcv)"
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.typeenum = 2 THEN [1] ELSE [] END | MERGE (snd:Account{account: event.txn_snd}) MERGE (partNode:ParticipationNode{participationNodeId: 0}) CREATE (snd)-[:KEY_REGISTRATION {txid: event.txid, fee: event.txn_fee, blockNumber: event.round, intraBlockNumber: event.intra, keyRegistrationType: CASE WHEN event.txn_selkey IS NOT NULL THEN \"online\" ELSE \"offline\" END}]->(partNode) )"
   }
 }

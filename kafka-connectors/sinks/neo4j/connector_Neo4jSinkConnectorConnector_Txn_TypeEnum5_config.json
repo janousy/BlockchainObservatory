@@ -1,0 +1,14 @@
+{
+  "name": "Neo4jSinkConnectorConnector_Txn_0",
+  "config": {
+    "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    "topics": "algod_indexer_public_txn_flat",
+    "neo4j.authentication.type": "NONE",
+    "neo4j.server.uri": "bolt://172.23.149.212:7687",
+    "value.converter.schemas.enable": "false",
+    "neo4j.topic.cypher.algod_indexer_public_txn_flat": "FOREACH (x IN CASE WHEN event.typeenum = 5 THEN [1] ELSE [] END | MERGE (snd:Account{account: event.txn_snd}) MERGE (asset:Asset{asset: event.asset}) CREATE (snd)-[:ASSET_FREEZE {txid: event.txid, fee: event.txn_fee, blockNumber: event.round, intraBlockNumber: event.intra, frozenAssetAccountHolder: event.txn_fadd, assetIdBeingFrozen: event.txn_faid, freezeType: CASE WHEN event.txn_afrz IS NOT NULL THEN \"freeze\" ELSE \"unfreeze\" END}]->(asset) )"
+  }
+}
