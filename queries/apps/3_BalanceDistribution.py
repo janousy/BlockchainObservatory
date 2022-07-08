@@ -32,7 +32,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("balanceDistrAPP") \
+        .appName("3_BalanceDistributionApplication") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
