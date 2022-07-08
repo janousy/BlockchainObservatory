@@ -235,6 +235,12 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     SCDelete = [row[0] for (row) in graphDelete]
 
+    graphCreate = dfTx.filter(dfTx.usecase == "createSC").select("round")
+    graphCreate = graphCreate.collect()
+
+    # convert row["data"] to only data
+    SCCreate = [row[0] for (row) in graphCreate]
+
     graphNoOp = dfTx.filter(dfTx.usecase == "NoOp").select("round")
     graphNoOp = graphNoOp.collect()
 
@@ -259,7 +265,7 @@ if __name__ == '__main__':
     plt.hist(SCClear, bins=mybins, alpha=0.3, label="clear_state")
     plt.hist(SCUpdate, bins=mybins, alpha=0.3, label="updateSC")
     plt.hist(SCDelete, bins=mybins, alpha=0.3, label="deleteSC")
-    plt.hist(SCcreate, bins=mybins, alpha=0.3, label="createSC")
+    plt.hist(SCCreate, bins=mybins, alpha=0.3, label="createSC")
     plt.hist(SCNoOp, bins=mybins, alpha=0.3, label="NoOp")
 
     # plt.rcParams["figure.figsize"] = [7.50, 3.50]
