@@ -8,15 +8,15 @@ import pyspark.sql.functions as F
 
 if __name__ == '__main__':
     config = pyspark.SparkConf().setAll([
-        ('spark.executor.memory', '16g'),
-        ('spark.executor.cores', '4'),
-        ('spark.cores.max', '8'),
+        ('spark.executor.memory', '8g'),
+        ('spark.executor.cores', '3'),
+        ('spark.cores.max', '6'),
         ('spark.driver.memory', '2g'),
         ('spark.executor.instances', '1'),
         ('spark.dynamicAllocation.enabled', 'true'),
         ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
         ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '2'),
+        ('spark.dynamicAllocation.minExecutors', '1'),
         ('spark.dynamicAllocation.maxExecutors', '2'),
         ('spark.dynamicAllocation.initialExecutors', '1'),
         ('spark.dynamicAllocation.executorAllocationRatio', '1'),
@@ -46,13 +46,12 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .load()
 
-
-    # organizing table
     # drop all unneccessary columns
     dfAccounts = dfAccounts.drop("_id", "rewardsbase", "account_data", "rewards_total", "deleted", "closed_at",
                                  "keytype")
 
     # calculate hom many algos are on the chain, and print the amount of algos on the chain
+
     totalAlgos = dfAccounts.agg(F.sum("microalgos")).collect()[0][0]
 
     # add column and calculate the proportion of the account to all algos, proportion is in %
@@ -60,10 +59,10 @@ if __name__ == '__main__':
 
     totalAccounts = dfAccounts.count()
 
-
-    # write the results into a gold table
     newestRound = dfAccounts.agg(F.max("created_at")).collect()[0][0]
 
+    # write amount of Algos in gold table
+    # first put value in a df
     result = spark.createDataFrame(
         [
             (totalAlgos, totalAlgos / 1000, totalAccounts, newestRound)
@@ -77,14 +76,23 @@ if __name__ == '__main__':
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("append") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', '3_TotalAlgos') \
+        .option('spark.mongodb.collection', 'TotalAlgos_3') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
-
-    # Plotting balance distribution
     # everything with 0
     dataWith0Accounts = dfAccounts.select("microalgos")
+
+    # write it back for metabase dashboard
+    dataWith0Accounts.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_silver') \
+        .option('spark.mongodb.collection', 'Distribution_AccountBalances_incl_0_3') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    # preparation for graph
     dataWith0Accounts = dataWith0Accounts.collect()
 
     # convert row["data"] to only data
@@ -92,8 +100,10 @@ if __name__ == '__main__':
     mean_alg0 = dfAccounts.agg(F.mean("microalgos")).collect()[0][0]
 
     # histogram with all accounts
+    # how many bars in the histogram should be plotted
     # histogram
     bin_size = 100
+    # plus one so no 0 value is created
     mybins = np.logspace(0, np.log10(max(microalgos0)), bin_size)
 
     mybins = np.insert(mybins, 0, 0)
@@ -110,11 +120,13 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_incl_0.jpg', dpi=200)
 
     # cell with no 0 values
-    # get rid off 0 values because they are destroying the plot
+    # get rid off 0 values because they aredestroying the plot
     dfAccNoZero = dfAccounts.filter(dfAccounts.microalgos > 0)
 
     # graph
     dataWithout0Accounts = dfAccNoZero.select("microalgos")
+
+    # preparation for graph
     dataWithout0Accounts = dataWithout0Accounts.collect()
 
     # convert row["data"] to only data
@@ -124,6 +136,7 @@ if __name__ == '__main__':
     mean_alg = dfAccNoZero.agg(F.mean("microalgos")).collect()[0][0]
 
     # histogram with all accounts with an amount > 0
+    # how many bars in the histogram should be plotted
     # histogram
     bin_size = 100
     # distribute bins log(equally) over the whole data
@@ -142,19 +155,40 @@ if __name__ == '__main__':
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
     whalesData = dfAccounts.select("microalgos", "addr").sort(col("microalgos").desc()).head(10)
 
+    # preparation for graph
     # convert row["data"] to only data /1000 to reach algos from microalgos
     whales = [row[0] / 1000 for (row) in whalesData]
     whalesAddresses = [row[1] for (row) in whalesData]
 
     # save the whales, the top 10 whales are saved in a list
-    plt.bar("whale1", whales[0], width=0.4)
-    plt.bar("whale2", whales[1], width=0.4)
-    plt.bar("whale3", whales[2], width=0.4)
-    plt.bar("whale4", whales[3], width=0.4)
-    plt.bar("whale5", whales[4], width=0.4)
+    # the top 10 are plotted
+    name = "whale "
+    for i in range(5):
+        plt.bar(name + str(i), whales[i], width=0.4)
+
+    # plt.bar("whale1", whales[0], width = 0.4)
+    # plt.bar("whale2", whales[1], width = 0.4)
+    # plt.bar("whale3", whales[2], width = 0.4)
+    # plt.bar("whale4", whales[3], width = 0.4)
+    # plt.bar("whale5", whales[4], width = 0.4)
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("Biggest whales with their account balances in Algos", loc='center', pad=None)
+    plt.title("5 Biggest whales with their account balances in Algos", loc='center', pad=None)
+
     plt.legend([whalesAddresses[0], whalesAddresses[1], whalesAddresses[2], whalesAddresses[3], whalesAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_whales.jpg', dpi=200)
 
+    # write the current whales in gold table
+    column = ["Addresses", "Algos"]
+    result = spark.createDataFrame(zip(whalesAddresses, whales), column)
+
+    # write it back for metabase dashboard
+    result.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'Distribution_whales_3') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
     spark.stop()
+    raise KeyboardInterrupt
