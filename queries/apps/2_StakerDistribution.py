@@ -224,6 +224,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minParticipationRound), np.log10(maxParticipationRound), bin_size)
+
+    plt.figure()
     plt.hist(rounds, bins=mybins)
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
@@ -232,7 +234,7 @@ if __name__ == '__main__':
     plt.ylabel("Number of Stakers")
     plt.title("distribution of staker starting to participate", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_Blockround.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # graph, histogram x-axis unix time when starting
     graph = dfOnline.select("starttimeInSec")
@@ -254,6 +256,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minUnixTime), np.log10(maxUnixTime), bin_size)
+
+    plt.figure()
     plt.hist(time, bins=mybins)
     # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
@@ -263,7 +267,7 @@ if __name__ == '__main__':
     plt.ylabel("Number of Stakers")
     plt.title("distribution of miner starttime participating", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_UnixTime.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # create a dataframe with all online transactions and convert its time to unix time
     dfOffline = dfTx.filter(dfTx.status == "offline")
@@ -294,6 +298,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minOffParticipationRound), np.log10(maxOffParticipationRound), bin_size)
+
+    plt.figure()
     plt.hist(roundsOffline, bins=mybins)
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
@@ -302,7 +308,7 @@ if __name__ == '__main__':
     plt.ylabel("staker")
     plt.title("distribution stakers offline", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # graph, histogram x-axis unix time when starting when going offline
     graph = dfOffline.select("endtimeInSec")
@@ -325,6 +331,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minOffEndtimeSec), np.log10(maxOffEndtimeSec), bin_size)
+
+    plt.figure()
     plt.hist(time, bins=mybins)
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
@@ -333,7 +341,7 @@ if __name__ == '__main__':
     plt.ylabel("number of stakers")
     plt.title("distribution of miner starttime participating", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_unixtime.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # graph, histogram rewardsdistribution
     graph = dfStaker.select("rewards_total")
@@ -367,6 +375,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minRewards + 1), np.log10(maxRewards), bin_size)
+
+    plt.figure()
     plt.hist(rewards, bins=mybins)
     # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
@@ -376,7 +386,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of stakers")
     plt.title("Stakers Reward Distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     spark.stop()
     raise KeyboardInterrupt

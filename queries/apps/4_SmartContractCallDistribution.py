@@ -164,11 +164,12 @@ if __name__ == '__main__':
     UCnames = [row[0] for (row) in graph]
     UCvalues = [row[1] for (row) in graph]
 
+    plt.figure()
     for i in range(len(UCnames)):
         plt.bar(UCnames[i], UCvalues[i], width=0.4)
     plt.title("smart contract use case transcation", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Use_Cases.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # diagramm wann wie viele smart contract calls gemacht wurden
 
@@ -194,6 +195,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minSCround), np.log10(maxSCround), bin_size)
+
+    plt.figure()
     plt.hist(SCcalls, bins=mybins)
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
@@ -202,7 +205,7 @@ if __name__ == '__main__':
     plt.ylabel("number of smart contract calls")
     plt.title("smart contract call distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Call_Distribution_blockround.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # histogram jeder use case einzeln
     # diagramm wann wie viele smart contract calls gemacht wurden
@@ -262,6 +265,7 @@ if __name__ == '__main__':
     # +1 necessary??
     mybins = np.logspace(np.log10(minH), np.log10(maxH) + 1, bin_size)
 
+    plt.figure()
     plt.hist(SCOptIn, bins=mybins, alpha=0.3, label="opt_in")
     plt.hist(SCCloseOut, bins=mybins, alpha=0.3, label="close_out")
     plt.hist(SCClear, bins=mybins, alpha=0.3, label="clear_state")
@@ -281,7 +285,7 @@ if __name__ == '__main__':
     plt.legend(loc="upper right")
     plt.title("usecase distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/UseCaseOverBlockround.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     spark.stop()
     raise KeyboardInterrupt
