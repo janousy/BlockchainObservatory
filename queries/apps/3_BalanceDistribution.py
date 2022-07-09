@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # save the whales, the top 10 whales are saved in a list
     # the top 10 are plotted
     name = "whale "
-    plt.figuer()
+    plt.figure()
     for i in range(5):
         plt.bar(name + str(i), whales[i], width=0.4)
 
