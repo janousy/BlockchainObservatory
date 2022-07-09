@@ -26,7 +26,7 @@ if __name__ == '__main__':
     dfPattern1 = spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
         .option("query",
-                "MATCH (a1:Account)-[r1:PAYMENT]->(a2:Account)-[r2:PAYMENT]->(a3:Account) WHERE a1.account <> a2.account AND r1.amount > 100000000 AND r2.amount > 100000000 AND r2.blockNumber - r1.blockNumber < 17280 RETURN a1.account AS senderAccount") \
+                "MATCH (a1:Account)-[r1:PAYMENT]->(a2:Account)-[r2:PAYMENT]->(a3:Account) WHERE a1.account <> a2.account AND r1.amount > 100000000 AND r2.amount > 100000000 AND r1.blockNumber > 0 AND r2.blockNumber > 0 AND r2.blockNumber - r1.blockNumber < 17280 RETURN a1.account AS senderAccount") \
         .load()
 
     spark.stop()
