@@ -108,6 +108,7 @@ if __name__ == '__main__':
 
     mybins = np.insert(mybins, 0, 0)
 
+    plt.figure()
     plt.hist(microalgos0, bins=mybins)
     # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     plt.title("Distribution of Account Balances", loc='center', pad=None)
     plt.axvline(mean_alg0, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_incl_0.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # cell with no 0 values
     # get rid off 0 values because they aredestroying the plot
@@ -142,6 +143,8 @@ if __name__ == '__main__':
     bin_size = 100
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(min(microalgos)), np.log10(max(microalgos)), bin_size)
+
+    plt.figure()
     plt.hist(microalgos, bins=mybins)
     # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
@@ -152,7 +155,7 @@ if __name__ == '__main__':
     plt.title("Distribution of Account Balances >0 ", loc='center', pad=None)
     plt.axvline(mean_alg, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_excl_0.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
     whalesData = dfAccounts.select("microalgos", "addr").sort(col("microalgos").desc()).head(10)
@@ -165,6 +168,7 @@ if __name__ == '__main__':
     # save the whales, the top 10 whales are saved in a list
     # the top 10 are plotted
     name = "whale "
+    plt.figuer()
     for i in range(5):
         plt.bar(name + str(i), whales[i], width=0.4)
 
@@ -178,7 +182,7 @@ if __name__ == '__main__':
 
     plt.legend([whalesAddresses[0], whalesAddresses[1], whalesAddresses[2], whalesAddresses[3], whalesAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_whales.jpg', dpi=200)
-    plt.show()
+    plt.close()
 
     # write the current whales in gold table
     column = ["Addresses", "Algos"]

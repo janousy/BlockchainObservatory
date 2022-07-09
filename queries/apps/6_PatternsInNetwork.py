@@ -21,8 +21,6 @@ if __name__ == '__main__':
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
-    spark.sparkContext.setLogLevel("DEBUG")
-
     dfPattern1 = spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
         .option("query",
