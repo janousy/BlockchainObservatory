@@ -116,6 +116,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of NFTs")
     plt.title("distribution of NFT creation", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_NFT_creation_perRound.jpg', dpi=200)
+    plt.show()
 
     # all people that have created an NFT on which time
     graphFTround = dfFT.select("created_at")
@@ -144,6 +145,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of FTs")
     plt.title("distribution of FT creation", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_FT_creation_perRound.jpg', dpi=200)
+    plt.show()
 
     # the expression can also be done in time
     # get BlockHeader to know the Realtime of a Block
@@ -209,6 +211,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of NFTs")
     plt.title("distribution of NFT creation over unix time", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_NFT_creation_unixTime.jpg', dpi=200)
+    plt.show()
 
     # all people that have created an NFT on which time
     graphFTTime = dfFT.select("realtime")
@@ -238,6 +241,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of FTs")
     plt.title("distribution of FT creation per blockround", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_FT_creation_unixTime.jpg', dpi=200)
+    plt.show()
 
     # histogram x-axis round when creating NFT
     # only tokens taken into consideration which are still online
@@ -256,6 +260,7 @@ if __name__ == '__main__':
     plt.legend(loc="upper right")
     plt.title("NFT vs FT creation", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/NFT_vs_FT_creation_unixTime.jpg', dpi=200)
+    plt.show()
 
     # creation (incl. live) vs deleted #unterscheidung zwischen nft und ft nicht möglich weil deletion t == null
     # preparation for histogram when all assets are created and when all assets are deleted
@@ -295,11 +300,13 @@ if __name__ == '__main__':
     plt.legend(loc="upper right")
     plt.title("creation vs. deletion of assets", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/Token_creation_vs_deletion.jpg', dpi=200)
+    plt.show()
 
     plt.bar("NFT", NFTcount, width=0.4, color="blue", label="NFT")
     plt.bar("FT", FTcount, width=0.4, color="orange", label="FT")
     plt.title("NFTs vs FTs", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/amount_NFT_vs_FT.jpg', dpi=200)
+    plt.show()
 
     spark.stop()
     raise KeyboardInterrupt

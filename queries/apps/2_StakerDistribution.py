@@ -232,6 +232,7 @@ if __name__ == '__main__':
     plt.ylabel("Number of Stakers")
     plt.title("distribution of staker starting to participate", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.show()
 
     # graph, histogram x-axis unix time when starting
     graph = dfOnline.select("starttimeInSec")
@@ -262,6 +263,7 @@ if __name__ == '__main__':
     plt.ylabel("Number of Stakers")
     plt.title("distribution of miner starttime participating", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_UnixTime.jpg', dpi=200)
+    plt.show()
 
     # create a dataframe with all online transactions and convert its time to unix time
     dfOffline = dfTx.filter(dfTx.status == "offline")
@@ -300,6 +302,7 @@ if __name__ == '__main__':
     plt.ylabel("staker")
     plt.title("distribution stakers offline", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
+    plt.show()
 
     # graph, histogram x-axis unix time when starting when going offline
     graph = dfOffline.select("endtimeInSec")
@@ -330,6 +333,7 @@ if __name__ == '__main__':
     plt.ylabel("number of stakers")
     plt.title("distribution of miner starttime participating", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_unixtime.jpg', dpi=200)
+    plt.show()
 
     # graph, histogram rewardsdistribution
     graph = dfStaker.select("rewards_total")
@@ -372,6 +376,7 @@ if __name__ == '__main__':
     plt.ylabel("amount of stakers")
     plt.title("Stakers Reward Distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
+    plt.show()
 
     spark.stop()
     raise KeyboardInterrupt

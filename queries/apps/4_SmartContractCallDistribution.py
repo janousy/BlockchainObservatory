@@ -168,6 +168,7 @@ if __name__ == '__main__':
         plt.bar(UCnames[i], UCvalues[i], width=0.4)
     plt.title("smart contract use case transcation", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Use_Cases.jpg', dpi=200)
+    plt.show()
 
     # diagramm wann wie viele smart contract calls gemacht wurden
 
@@ -201,6 +202,7 @@ if __name__ == '__main__':
     plt.ylabel("number of smart contract calls")
     plt.title("smart contract call distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Call_Distribution_blockround.jpg', dpi=200)
+    plt.show()
 
     # histogram jeder use case einzeln
     # diagramm wann wie viele smart contract calls gemacht wurden
@@ -279,7 +281,7 @@ if __name__ == '__main__':
     plt.legend(loc="upper right")
     plt.title("usecase distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/UseCaseOverBlockround.jpg', dpi=200)
-
+    plt.show()
 
     spark.stop()
     raise KeyboardInterrupt

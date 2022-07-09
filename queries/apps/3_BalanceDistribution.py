@@ -118,6 +118,7 @@ if __name__ == '__main__':
     plt.title("Distribution of Account Balances", loc='center', pad=None)
     plt.axvline(mean_alg0, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_incl_0.jpg', dpi=200)
+    plt.show()
 
     # cell with no 0 values
     # get rid off 0 values because they aredestroying the plot
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     plt.title("Distribution of Account Balances >0 ", loc='center', pad=None)
     plt.axvline(mean_alg, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_excl_0.jpg', dpi=200)
+    plt.show()
 
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
     whalesData = dfAccounts.select("microalgos", "addr").sort(col("microalgos").desc()).head(10)
@@ -176,6 +178,7 @@ if __name__ == '__main__':
 
     plt.legend([whalesAddresses[0], whalesAddresses[1], whalesAddresses[2], whalesAddresses[3], whalesAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_whales.jpg', dpi=200)
+    plt.show()
 
     # write the current whales in gold table
     column = ["Addresses", "Algos"]
