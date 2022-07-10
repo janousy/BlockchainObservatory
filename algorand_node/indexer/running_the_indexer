@@ -1,0 +1,7 @@
+sudo systemctl daemon-reload //should be used to make the updated configuration file to take effect.
+sudo systemctl enable algorand-indexer.service
+sudo systemctl start algorand-indexer.service
+journalctl -u algorand-indexer.service -n 100 -f //is used to check status of the indexer
+
+sudo systemctl stop algorand-indexer.service
+sudo systemctl disable algorand-indexer.service
