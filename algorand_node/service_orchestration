@@ -1,0 +1,26 @@
+# specify data directory (in .bashrc best)
+#export ALGORAND_DATA="$HOME/node/data"
+#export PATH="$HOME/node:$PATH"
+
+# this is the default data dir
+export ALGORAND_DATA=/mnt/algorand
+OLD: export ALGORAND_DATA=/var/lib/algorand
+
+# for the node, there is a linux user which must have access to the data directory
+ls -las
+sudo chown algorand /mnt/algorand
+
+
+# start
+sudo systemctl daemon-reload
+sudo systemctl enable algorand
+sudo systemctl start algorand
+journalctl -u algorand -n 100 --no-pager
+
+# stop
+sudo systemctl stop algorand
+sudo systemctl disable algorand
+
+# status
+goal node status -d /mnt/algorand -w 1000
+OLD: goal node status -d /var/lib/algorand -w 1000
