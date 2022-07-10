@@ -1,0 +1,33 @@
+First, we followed the steps listed on this link to install postgresql database for the indexer on the algorand node: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de
+
+Second, we created a databae for the indexer which is also called indexer:
+sudo -u postgres psql
+
+sudo -u postgres createdb indexer
+# check 
+sudo -u postgres psql -d indexer
+\conninfo
+# You are connected to database "indexer" as user "algorand" via socket in "/var/run/postgresql" at port "5432".
+
+\c indexer
+#list tables
+\dt
+
+# HINT: you can use a DB Client like DBeaver to inspect the database conveniently.
+
+Third, in order to check whether Postgresql is installed and running:
+1. #check if postgresql is installed:
+pgrep -u postgres -fa -- -D
+
+#Result:
+185528 /usr/lib/postgresql/12/bin/postgres -D /mnt/pgdata/postgresql/12/main -c config_file=/etc/postgresql/12/main/postgresql.conf
+
+2. #check if postgresql is running and connect to it:
+psql -h 127.0.0.1 -U postgres
+
+#disconnect from psql:
+\q
+
+3. #check version of postgresql:
+/usr/lib/postgresql/12/bin$ ./postgres -V
+postgres (PostgreSQL) 12.9 (Ubuntu 12.9-0ubuntu0.20.04.1)
