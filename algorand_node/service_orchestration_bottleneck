@@ -1,0 +1,48 @@
+#If during the data load period, the mainnet data directory changes in the algorand.service file out of your control, 
+#follow the steps below to continue syncing to the correct directory:
+
+#Stop the node before making any changes in the algorand.service file.
+sudo systemctl stop algorand
+sudo systemctl disable algorand
+
+# OLD cd /lib/systemd/system
+# sudo nano algorand.service
+
+# NOTE: editing system unit files in /lib/systemd/system is not recommended 
+# as they will be replaced again when ubuntu is updated.
+# instead create a copy to /etc/systemd/system with systemctl edit --full <service>
+
+sudo systemctl edit --full algorand
+
+#Here change the second path in the "ExecStart" to the one you want the mainnet data to be loaded:
+#For our VM server, we changed it from "/var/lib/algorand" to "/mnt/algorand"
+# ----------------------
+[Unit]
+Description=Algorand daemon for mainnet in /mnt/algorand
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/algod -d /mnt/algorand
+PIDFile=/var/lib/algorand/algod.pid
+User=algorand
+Group=algorand
+Restart=always
+RestartSec=5s
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
+# ----------------------
+
+# check service config, which should load the unit file in /etc/system/systemd
+systemctl cat algorand
+
+#Then reload the deamon and start the algorand server. If it doesn't work with the first attempt, apply the following commands again:
+sudo systemctl daemon-reload
+sudo systemctl enable algorand
+sudo systemctl start algorand
+
+#When the node starts, it will continue from where it left. Also, if there is no data in the new directory, it will start from the beginning. 
+#That's why you shouldn't move any mainnet data from the other directory to the new one, before changing the directory path following the steps above
+#and restarting the node.
