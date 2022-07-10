@@ -1,1 +1,45 @@
-The steps described on the link were followed to set up the algorand node: https://developer.algorand.org/docs/run-a-node/setup/install/#installation-with-a-package-manager
+The steps described on the link were followed to set up the algorand node: 
+https://developer.algorand.org/docs/run-a-node/setup/install/#installation-with-a-package-manager
+
+Installation steps:
+sudo apt-get update
+sudo apt-get install -y gnupg2 curl software-properties-common
+curl -O https://releases.algorand.com/key.pub
+sudo apt-key add key.pub
+sudo add-apt-repository "deb [arch=amd64] https://releases.algorand.com/deb/ stable main"
+sudo apt-get update
+
+# To get both algorand and the devtools:
+sudo apt-get install -y algorand-devtools
+
+# Or, to only install algorand:
+sudo apt-get install -y algorand
+
+algod -v
+
+The data directory will be "/var/lib/algorand" by default.
+
+#Start, stop the node and check its status:
+sudo systemctl start algorand
+sudo systemctl stop algorand
+
+#The status of the node can be checked by running:
+goal node status -d /var/lib/algorand
+
+
+#A new option can facilitate a status watch, -w which takes a parameter of time, in milliseconds, between two successive status updates. This will eliminate the need to repeatedly issue a status manually. Press ^c to exit the watch.
+goal node status -w 1000
+
+#Notice that the 5 Catchpoint status lines will disappear when completed, and then only a few more minutes are needed to sync from that point to the current block. 
+**Once there is a Sync Time of 0, the node is synced and if fully usable. **
+
+Last committed block: 4431453
+Time since last block: 3.9s
+Sync Time: 0.0s
+Last consensus protocol: https://github.com/algorandfoundation/specs/tree/e5f565421d720c6f75cdd186f7098495caf9101f
+Next consensus protocol: https://github.com/algorandfoundation/specs/tree/e5f565421d720c6f75cdd186f7098495caf9101f
+Round for next consensus protocol: 4431454
+Next consensus protocol supported: true
+Last Catchpoint: 4430000#UAQPNY32LP3K5ARGFUQEFTBGELI5ZAQOMBGE7YL5ZFXL2MXWTO2A
+Genesis ID: betanet-v1.0
+Genesis hash: mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0=
