@@ -1,1 +1,38 @@
+First, we followed the installation steps described on this link: https://docs.confluent.io/platform/current/installation/installing_cp/zip-tar.html#manual-install-using-zip-and-tar-archives
 
+Second, we ran the commands below to configure and start the confluent services:
+mkdir /opt/confluent
+sudo chmod -R 777 /opt/confluent
+cd /opt/confluent
+# install tar files here (see installation docs)
+
+curl -O http://packages.confluent.io/archive/7.0/confluent-7.1.1.tar.gz
+tar xzf confluent-7.1.1.tar.gz
+
+sudo nano ~/.bashrc
+# add the following two lines
+export CONFLUENT_HOME=/opt/confluent/confluent-7.1.1
+export PATH=$CONFLUENT_HOME/bin:$PATH
+source .bashrc
+echo 
+# validate
+confluent version
+
+# confluent cli is used to manage a dev cluster, thus log.dirs server property
+# will not be fetched, one needs to set the following to move to external disk
+mkdir /mnt/kafka/current/
+export CONFLUENT_CURRENT=/mnt/kafka/current/
+
+# create the dev cluster setup
+confluent local services start
+confluent local services stop
+
+# configurations need to be done in the dev cluster that is created, e.g.
+/mnt/kafka/current/confluent.848379/kafka/kafka.properties
+
+# change the following
+advertised.listeners=PLAINTEXT://172.23.149.211:9092
+log.retention.hours=-1
+log.segment.bytes=-1
+
+confluent local services start
