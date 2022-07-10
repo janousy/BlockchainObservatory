@@ -1,0 +1,15 @@
+- Choose correct binaries:
+    - [https://github.com/algorand/indexer/releases](https://github.com/algorand/indexer/releases)
+    - command `lscpu` gives more information
+    - watch out for stable releases
+    - e.g.: algorand-indexer_linux_amd64_2.8.4.tar.bz2
+    
+    
+OLD mkdir ~/dev/indexer
+OLD cd ~/dev/indexer
+
+cd /usr/local/bin
+# choose latest release on github
+sudo wget https://github.com/algorand/indexer/releases/download/2.10.0/algorand-indexer_linux_amd64_2.10.0.tar.bz2
+sudo mkdir indexer
+sudo tar -xf algorand-indexer_linux_amd64_2.10.0.tar.bz2 -C indexer
