@@ -1,0 +1,7 @@
+It’s very important to configure the node as archival, otherwise the mainnet data won't be synced to the ndoe and the indexer won't work.
+
+There is a 'config.json.example', which has to be renamed to 'config.json'. There should be only one parameter in this file called 'Archival' 
+and it needs to be set to "true". 
+{
+  "Archival": true,
+}
