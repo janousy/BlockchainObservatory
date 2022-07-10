@@ -1,1 +1,19 @@
+First, we followed the steps described on this link: https://docs.confluent.io/debezium-connect-postgres-source/current/overview.html
 
+Second we run the following commands below:
+# we used version 1.9.2
+confluent-hub install debezium/debezium-connector-postgresql:latest
+
+#We changed the parameter below in the configuration file of PostgreSQL:
+/etc/postgresql/12/main
+
+# MODULES
+shared_preload_libraries = 'wal2json'
+
+Third, we enabled the Postgres Replication:
+https://docs.confluent.io/debezium-connect-postgres-source/current/overview.html#enable-logical-decoding
+
+Lastly, we installed the wal2json plugin: https://github.com/eulerto/wal2json
+
+# ensure correct postgres version
+sudo apt-get install postgresql-12-wal2json
