@@ -164,12 +164,12 @@ if __name__ == '__main__':
     for i in range(len(UCnames)):
         plt.bar(UCnames[i], UCvalues[i], width=0.4)
 
-    plt.title("Smart Contract Use Case Transcations", loc='center', pad=None)
+    plt.title("Smart Contract Use Case Transactions", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Use_Cases.jpg', dpi=200)
     plt.show()
     plt.close()
 
-    # diagramm: how much sc calls werde made
+    # diagram: how much sc calls were made
     graph = dfTx.select("round")
 
     # preparation for graph
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Smart Contract Calls")
-    plt.title("Smart Contract Call Distribution", loc='center', pad=None)
+    plt.title("Smart Contract Call Distribution (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Call_Distribution_blockround.jpg', dpi=200)
     plt.show()
     plt.close()
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     plt.xlabel("Blockround")
     plt.ylabel("Number of Calls")
     plt.legend(loc="upper right")
-    plt.title("Use Case Distribution", loc='center', pad=None)
+    plt.title("Use Case Distribution (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/UseCaseOverBlockround.jpg', dpi=200)
     plt.show()
     plt.close()

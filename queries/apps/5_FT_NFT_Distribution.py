@@ -44,6 +44,26 @@ if __name__ == '__main__':
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
+    # create a schema so data quality of dfAsset is ensured
+    schema = StructType([
+        StructField("df", BooleanType(), True),
+        StructField("closed_at", LongType(), True),
+        StructField("c", StringType(), True),
+        StructField("f", StringType(), True),
+        StructField("index", LongType(), True),
+        StructField("created_at", LongType(), True),
+        StructField("am", StringType(), True),
+        StructField("an", StringType(), True),
+        StructField("m", StringType(), True),
+        StructField("r", StringType(), True),
+        StructField("deleted", BooleanType(), True),
+        StructField("t", LongType(), True),
+        StructField("au", StringType(), True),
+        StructField("un", StringType(), True),
+        StructField("creator_addr", StringType(), True),
+        StructField("dc", LongType(), True),
+        ])
+
 
     # getting asset table
     dfAsset = spark.read.format("mongodb") \
@@ -328,7 +348,7 @@ if __name__ == '__main__':
     # histogram when all assets are created and when all assets are deleted
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
+    mybins = np.logspace(0, np.log10(maxRounds), bin_size)
 
     plt.figure()
     plt.hist(roundsCreated, bins=mybins, alpha=0.5, label="created")
