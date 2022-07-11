@@ -102,23 +102,22 @@ if __name__ == '__main__':
     # histogram with all accounts
     # how many bars in the histogram should be plotted
     # histogram
-    bin_size = 100
+    bin_size = 50
     # plus one so no 0 value is created
     mybins = np.logspace(0, np.log10(max(microalgos0)), bin_size)
-
     mybins = np.insert(mybins, 0, 0)
 
     plt.figure()
     plt.hist(microalgos0, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("microalgos")
-    plt.ylabel("accounts")
+    plt.xlabel("Microalgos")
+    plt.ylabel("Number of Accounts")
     plt.title("Distribution of Account Balances", loc='center', pad=None)
     plt.axvline(mean_alg0, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_incl_0.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # cell with no 0 values
@@ -140,21 +139,21 @@ if __name__ == '__main__':
     # histogram with all accounts with an amount > 0
     # how many bars in the histogram should be plotted
     # histogram
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(min(microalgos)), np.log10(max(microalgos)), bin_size)
 
     plt.figure()
     plt.hist(microalgos, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("microalgos")
-    plt.ylabel("accounts")
-    plt.title("Distribution of Account Balances >0 ", loc='center', pad=None)
+    plt.xlabel("Microalgos")
+    plt.ylabel("Number of Accounts")
+    plt.title("Distribution of Account Balances > 0 ", loc='center', pad=None)
     plt.axvline(mean_alg, color='k', linestyle='dashed', linewidth=1)
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_AccountBalances_excl_0.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
@@ -172,16 +171,12 @@ if __name__ == '__main__':
     for i in range(5):
         plt.bar(name + str(i), whales[i], width=0.4)
 
-    # plt.bar("whale1", whales[0], width = 0.4)
-    # plt.bar("whale2", whales[1], width = 0.4)
-    # plt.bar("whale3", whales[2], width = 0.4)
-    # plt.bar("whale4", whales[3], width = 0.4)
-    # plt.bar("whale5", whales[4], width = 0.4)
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("5 Biggest whales with their account balances in Algos", loc='center', pad=None)
+    plt.title("5 Biggest Whales with their Account Balances in Algos", loc='center', pad=None)
 
     plt.legend([whalesAddresses[0], whalesAddresses[1], whalesAddresses[2], whalesAddresses[3], whalesAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/3_BalanceDistribution/Distribution_whales.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # write the current whales in gold table
