@@ -349,7 +349,7 @@ if __name__ == '__main__':
     # histogram when all assets are created and when all assets are deleted
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(0, np.log10(maxRounds), bin_size)
+    mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
 
     plt.figure()
     plt.hist(roundsCreated, bins=mybins, alpha=0.5, label="created")
