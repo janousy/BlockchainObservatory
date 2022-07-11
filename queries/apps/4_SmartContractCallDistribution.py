@@ -35,7 +35,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("4_smartContractDistibution") \
+        .appName("4_smartContractDistibutionApplication") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 

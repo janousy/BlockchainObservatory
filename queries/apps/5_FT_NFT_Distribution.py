@@ -40,7 +40,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("5_countFT_NFT") \
+        .appName("5_countFT_NFT_Application") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
