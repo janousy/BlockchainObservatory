@@ -306,13 +306,6 @@ if __name__ == '__main__':
     dfCreated = dfAsset.where(dfAsset.t.isNotNull())
 
     # preparation for histogram when all assets are created and when all assets are deleted
-    graphDeleted = dfDeleted.select("closed_at")
-    graphDeleted = graphDeleted.collect()
-
-    # convert row["data"] to only data
-    roundsDeleted = [row[0] for (row) in graphDeleted]
-
-    # preparation for histogram when all assets are created and when all assets are deleted
     graphCreated = dfCreated.select("created_at")
 
     # preparation for graph
@@ -321,14 +314,21 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     roundsCreated = [row[0] for (row) in graphCreated]
 
+    # preparation for histogram when all assets are created and when all assets are deleted
+    graphDeleted = dfDeleted.select("closed_at")
+    graphDeleted = graphDeleted.collect()
+
+    # convert row["data"] to only data
+    roundsDeleted = [row[0] for (row) in graphDeleted]
+
     # min
     minRounds = dfAsset.agg(F.min("created_at")).collect()[0][0]
     maxRounds = dfAsset.agg(F.max("created_at")).collect()[0][0]
 
     # histogram when all assets are created and when all assets are deleted
-    # bin_size = 50
+    bin_size = 50
     # distribute bins log(equally) over the whole data
-    # mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
+    mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
 
     plt.figure()
     plt.hist(roundsCreated, bins=mybins, alpha=0.5, label="created")
