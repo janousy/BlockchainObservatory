@@ -73,6 +73,7 @@ if __name__ == '__main__':
         .option('park.mongodb.read.readPreference.name', 'primaryPreferred') \
         .option('spark.mongodb.change.stream.publish.full.document.only', 'true') \
         .option("forceDeleteTempCheckpointLocation", "true") \
+        .schema(schema) \
         .load()
 
 
