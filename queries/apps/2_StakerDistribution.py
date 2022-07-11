@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     # add column and calculate the proportion of the account to all algos, proportion is in %
     dfStaker = dfStaker.withColumn("proportion", dfStaker.rewards_total / tRew * 100)
-
+    #test
     # select necesseray field in dfTx. The fields help to determine when a staker went online and offline
     dfTx = dfTx.select("round", "txn_snd", "txn_type", "txn_votefst")
 
