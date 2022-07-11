@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     # add column and calculate the proportion of the account to all algos, proportion is in %
     dfStaker = dfStaker.withColumn("proportion", dfStaker.rewards_total / tRew * 100)
-    #test
+
     # select necesseray field in dfTx. The fields help to determine when a staker went online and offline
     dfTx = dfTx.select("round", "txn_snd", "txn_type", "txn_votefst")
 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
             (addresses, newestRound)  # create your data here, be consistent in the types.
 
         ],
-        ["totalMicroAlgos", "CreationRound"]  # add your column names here
+        ["NrOfAddresses", "CreationRound"]  # add your column names here
     )
 
     result.write.format("mongodb") \
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             (transactions, newestRound)  # create your data here, be consistent in the types.
 
         ],
-        ["totalMicroAlgos", "CreationRound"]  # add your column names here
+        ["NrOfTransactions", "CreationRound"]  # add your column names here
     )
 
     result.write.format("mongodb") \
@@ -185,22 +185,22 @@ if __name__ == '__main__':
     dfOnline = dfOnline.select("txn_snd", "applicationRound", "participationRound",
                                from_unixtime(col("starttime")).alias("starttime"), "starttimeInSec")
 
-    applications = dfOnline.count()
+    candidacies = dfOnline.count()
     newestRound = dfOnline.agg(F.max("applicationRound")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (applications, newestRound)  # create your data here, be consistent in the types.
+            (candidacies, newestRound)  # create your data here, be consistent in the types.
 
         ],
-        ["totalApplications", "CreationRound"]  # add your column names here
+        ["TotalCandidates", "CreationRound"]  # add your column names here
     )
 
     result.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("append") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'NumberOfStakerApplications_2') \
+        .option('spark.mongodb.collection', 'NumberOfStakerCandidates_2') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
 
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minParticipationRound), np.log10(maxParticipationRound), bin_size)
 
@@ -230,10 +230,11 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("blockround")
-    plt.ylabel("Number of Stakers")
-    plt.title("distribution of staker starting to participate", loc='center', pad=None)
+    plt.xlabel("Blockround")
+    plt.ylabel("Number of Staker")
+    plt.title("Distribution of Staker Starting to Participate (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # graph, histogram x-axis unix time when starting
@@ -253,7 +254,7 @@ if __name__ == '__main__':
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
 
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minUnixTime), np.log10(maxUnixTime), bin_size)
 
@@ -264,9 +265,10 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Unix Time")
-    plt.ylabel("Number of Stakers")
-    plt.title("distribution of miner starttime participating", loc='center', pad=None)
+    plt.ylabel("Number of Staker")
+    plt.title("Distribution of Staker Starting to Participate (Unix Time)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_UnixTime.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # create a dataframe with all online transactions and convert its time to unix time
@@ -293,9 +295,8 @@ if __name__ == '__main__':
 
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
-    # +1 rausgenommen check ob gap jetzt weg
 
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minOffParticipationRound), np.log10(maxOffParticipationRound), bin_size)
 
@@ -304,10 +305,11 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("blockround")
-    plt.ylabel("staker")
-    plt.title("distribution stakers offline", loc='center', pad=None)
+    plt.xlabel("Blockround")
+    plt.ylabel("Number of Staker")
+    plt.title("Distribution of Staker Ending to Participate (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     # graph, histogram x-axis unix time when starting when going offline
@@ -326,9 +328,8 @@ if __name__ == '__main__':
 
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
-    # 1 weggenommen, check ob gap geschlossen
 
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minOffEndtimeSec), np.log10(maxOffEndtimeSec), bin_size)
 
@@ -337,17 +338,17 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("unixtime")
-    plt.ylabel("number of stakers")
-    plt.title("distribution of miner starttime participating", loc='center', pad=None)
+    plt.xlabel("Unix Time")
+    plt.ylabel("Number of Staker")
+    plt.title("Distribution of Staker Ending to Participate (Unix Time)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_unixtime.jpg', dpi=200)
+    plt.show()
     plt.close()
 
-    # graph, histogram rewardsdistribution
-    graph = dfStaker.select("rewards_total")
-    # fix schreibe rewards plus dazugehörige adresse in silver table
-    # write it back for metabase dashboard
-    graph.write.format("mongodb") \
+    silverdf = dfStaker.select("addr", "rewards_total")
+
+    # save staker and their rewards in silver table
+    silverdf.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_silver') \
@@ -355,16 +356,16 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    # graph, histogram rewardsdistribution
+    graph = dfStaker.select("rewards_total")
+
     # preparation for graph
     graph = graph.collect()
 
     # convert row["data"] to only data
     rewards = [row[0] for (row) in graph]
 
-    # calculate the mean of all miner rewards
-    # mean_rewards = dfStaker.agg(F.mean("rewards_total")).collect()[0][0]
-
-    # min#min
+    # min
     minRewards = dfStaker.agg(F.min("rewards_total")).collect()[0][0]
 
     maxRewards = dfStaker.agg(F.max("rewards_total")).collect()[0][0]
@@ -372,20 +373,20 @@ if __name__ == '__main__':
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
 
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minRewards + 1), np.log10(maxRewards), bin_size)
 
     plt.figure()
     plt.hist(rewards, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("microalgos")
-    plt.ylabel("amount of stakers")
-    plt.title("Stakers Reward Distribution", loc='center', pad=None)
+    plt.xlabel("Microalgos")
+    plt.ylabel("Number of Staker")
+    plt.title("Staker Reward Distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     spark.stop()
