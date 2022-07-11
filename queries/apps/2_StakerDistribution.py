@@ -375,6 +375,7 @@ if __name__ == '__main__':
 
     bin_size = 50
     # distribute bins log(equally) over the whole data
+    # +1 because Rewards can be zero
     mybins = np.logspace(np.log10(minRewards + 1), np.log10(maxRewards), bin_size)
 
     plt.figure()
