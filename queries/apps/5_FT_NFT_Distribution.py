@@ -12,7 +12,9 @@ from pyspark.sql.types import StructField, StringType, LongType, DoubleType, Boo
 from pyspark.sql.functions import col, hex, base64, avg, collect_list, concat, lit, max
 
 if __name__ == '__main__':
-    # config for our sparksession
+
+
+    # config for the sparksession
     config = pyspark.SparkConf().setAll([
         ('spark.executor.memory', '12g'),
         ('spark.executor.cores', '2'),
@@ -22,7 +24,7 @@ if __name__ == '__main__':
         ('spark.dynamicAllocation.enabled', 'true'),
         ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
         ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '1'),
+        ('spark.dynamicAllocation.minExecutors', '0'),
         ('spark.dynamicAllocation.maxExecutors', '2'),
         ('spark.dynamicAllocation.initialExecutors', '1'),
         ('spark.dynamicAllocation.executorAllocationRatio', '1'),
@@ -33,14 +35,15 @@ if __name__ == '__main__':
         ('spark.jars.packages', 'org.mongodb.spark:mongo-spark-connector:10.0.2')
     ])
 
+
     # create sparksession
-    # when copying change appName
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("5_FT_NFT_DistributionApplication") \
+        .appName("5_countFT_NFT") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
+
 
     # getting asset table
     dfAsset = spark.read.format("mongodb") \
@@ -51,6 +54,7 @@ if __name__ == '__main__':
         .option('spark.mongodb.change.stream.publish.full.document.only', 'true') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .load()
+
 
     # if amount of assets is exactly one than it has to be an NFT
     dfAsset = dfAsset.drop("dc", "df", "_id")
@@ -65,10 +69,11 @@ if __name__ == '__main__':
     NFTcount = dfNFT.count()
     FTcount = dfFT.count()
     DelCount = dfDeleted.count()
-    # it is not possible to distinguish between NFT and FT from a deleted asset since, every parameter is set to null
+
 
     # newest round for writing to the gold table
     newestRound = dfAsset.agg(F.max("created_at")).collect()[0][0]
+
 
     # write amount of Algos in gold table
     # first put value in a df
@@ -97,30 +102,33 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     roundsNFT = [row[0] for (row) in graph]
 
+
     # min
     minNFTrounds = dfNFT.agg(F.min("created_at")).collect()[0][0]
     maxNFTrounds = dfNFT.agg(F.max("created_at")).collect()[0][0]
 
+
     # histogram x-axis round when creating NFT
     # only the NFTs are taken into consideration, which are not already deleted
     # the plot is saved to the VM
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minNFTrounds), np.log10(maxNFTrounds), bin_size)
 
     plt.figure()
     plt.hist(roundsNFT, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("amount of NFTs")
-    plt.title("distribution of NFT creation", loc='center', pad=None)
+    plt.ylabel("Amount of NFTs")
+    plt.title("Distribution of NFT Creation (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_NFT_creation_perRound.jpg', dpi=200)
+    plt.show()
     plt.close()
 
-    # all people that have created an NFT on which time
+
+    # all people that have created an FT on which time
     graphFTround = dfFT.select("created_at")
 
     # preparation for graph
@@ -129,27 +137,29 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     roundsFT = [row[0] for (row) in graphFTround]
 
+
     # min
     minFTrounds = dfFT.agg(F.min("created_at")).collect()[0][0]
     maxFTrounds = dfFT.agg(F.max("created_at")).collect()[0][0]
 
+
     # histogram x-axis round when creating NFT
-    # only the FTs are taken into consideration, which are not already deleted
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minFTrounds), np.log10(maxFTrounds), bin_size)
 
     plt.figure()
     plt.hist(roundsFT, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("amount of FTs")
-    plt.title("distribution of FT creation", loc='center', pad=None)
+    plt.ylabel("Amount of FTs")
+    plt.title("Distribution of FT Creation (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_FT_creation_perRound.jpg', dpi=200)
+    plt.show()
     plt.close()
+
 
     # the expression can also be done in time
     # get BlockHeader to know the Realtime of a Block
@@ -165,10 +175,12 @@ if __name__ == '__main__':
     # select necessary schema
     dfBlock = dfBlock.select(col("round").alias("blockround"), col("realtime"))
 
+
     # add time to dfTx, where the information about online and offline is stored
     dfNFT = dfBlock.join(dfNFT, dfBlock.blockround == dfNFT.created_at, "inner")
     # the same for FT
     dfFT = dfBlock.join(dfFT, dfBlock.blockround == dfFT.created_at, "inner")
+
 
     # post the dfNFT and dfFT in the silvertable after joining
     dfNFT.write.format("mongodb") \
@@ -187,6 +199,7 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+
     # all people that have created an NFT on which time
     graph = dfNFT.select("realtime")
 
@@ -196,28 +209,30 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     timeNFT = [row[0] for (row) in graph]
 
+
     minNFTtime = dfNFT.agg(F.min("realtime")).collect()[0][0]
     maxNFTtime = dfNFT.agg(F.max("realtime")).collect()[0][0]
+
 
     # histogram x-axis round when creating NFT
     # how many bars in the histogram should be plotted
     # the graph is save on the vm
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
-    # +1 noch notwendig??
-    mybins = np.logspace(np.log10(minNFTtime), np.log10(maxNFTtime + 1), bin_size)
+    mybins = np.logspace(np.log10(minNFTtime), np.log10(maxNFTtime), bin_size)
 
     plt.figure()
     plt.hist(timeNFT, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Unix Time")
-    plt.ylabel("amount of NFTs")
-    plt.title("distribution of NFT creation over unix time", loc='center', pad=None)
+    plt.ylabel("Amount of NFTs")
+    plt.title("Distribution of NFT Creation (Unix Time)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_NFT_creation_unixTime.jpg', dpi=200)
+    plt.show()
     plt.close()
+
 
     # all people that have created an NFT on which time
     graphFTTime = dfFT.select("realtime")
@@ -228,14 +243,16 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     timeFT = [row[0] for (row) in graphFTTime]
 
+
     # min
     minFTtime = dfFT.agg(F.min("realtime")).collect()[0][0]
     maxFTtime = dfFT.agg(F.max("realtime")).collect()[0][0]
 
+
     # histogram x-axis round when creating FT
     # how many bars in the histogram should be plotted
     # the graph is saved on the vm
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minFTtime), np.log10(maxFTtime), bin_size)
 
@@ -245,36 +262,40 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("unixtime")
-    plt.ylabel("amount of FTs")
-    plt.title("distribution of FT creation per blockround", loc='center', pad=None)
+    plt.xlabel("Unix Time")
+    plt.ylabel("Amount of FTs")
+    plt.title("Distribution of FT Creation (Unix Time)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/distribution_of_FT_creation_unixTime.jpg', dpi=200)
+    plt.show()
     plt.close()
+
 
     # histogram x-axis round when creating NFT
     # only tokens taken into consideration which are still online
     # the graph is saved on the vm
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minFTtime), np.log10(maxFTtime + 1), bin_size)
 
     plt.figure()
     plt.hist(timeNFT, bins=mybins, alpha=0.5, label="NFT")
     plt.hist(timeFT, bins=mybins, alpha=0.5, label="FT")
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("unixtime")
-    plt.ylabel("amount of Tokens")
+    plt.xlabel("Unix Time")
+    plt.ylabel("Amount of Tokens")
     plt.legend(loc="upper right")
-    plt.title("NFT vs FT creation", loc='center', pad=None)
+    plt.title("NFT vs FT Creation (Unix Time)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/NFT_vs_FT_creation_unixTime.jpg', dpi=200)
+    plt.show()
     plt.close()
+
 
     # creation (incl. live) vs deleted #unterscheidung zwischen nft und ft nicht möglich weil deletion t == null
     # preparation for histogram when all assets are created and when all assets are deleted
     dfCreated = dfAsset.where(dfAsset.t.isNotNull())
+
 
     # preparation for histogram when all assets are created and when all assets are deleted
     graphDeleted = dfDeleted.select("closed_at")
@@ -282,6 +303,7 @@ if __name__ == '__main__':
 
     # convert row["data"] to only data
     roundsDeleted = [row[0] for (row) in graphDeleted]
+
 
     # preparation for histogram when all assets are created and when all assets are deleted
     graphCreated = dfCreated.select("created_at")
@@ -292,12 +314,14 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     roundsCreated = [row[0] for (row) in graphCreated]
 
+
     # min
     minRounds = dfAsset.agg(F.min("created_at")).collect()[0][0]
     maxRounds = dfAsset.agg(F.max("created_at")).collect()[0][0]
 
+
     # histogram when all assets are created and when all assets are deleted
-    bin_size = 100
+    bin_size = 50
     # distribute bins log(equally) over the whole data
     mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
 
@@ -307,18 +331,21 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel("blockrounds")
-    plt.ylabel("amount of Tokens")
+    plt.xlabel("Blockround")
+    plt.ylabel("Amount of Tokens")
     plt.legend(loc="upper right")
-    plt.title("creation vs. deletion of assets", loc='center', pad=None)
+    plt.title("Creation vs. Deletion of Assets (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/Token_creation_vs_deletion.jpg', dpi=200)
+    plt.show()
     plt.close()
+
 
     plt.figure()
     plt.bar("NFT", NFTcount, width=0.4, color="blue", label="NFT")
     plt.bar("FT", FTcount, width=0.4, color="orange", label="FT")
-    plt.title("NFTs vs FTs", loc='center', pad=None)
+    plt.title("Amount of NFTs vs FTs", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/amount_NFT_vs_FT.jpg', dpi=200)
+    plt.show()
     plt.close()
 
     spark.stop()
