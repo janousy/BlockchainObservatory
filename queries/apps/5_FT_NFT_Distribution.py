@@ -13,7 +13,6 @@ from pyspark.sql.functions import col, hex, base64, avg, collect_list, concat, l
 
 if __name__ == '__main__':
 
-
     # config for the sparksession
     config = pyspark.SparkConf().setAll([
         ('spark.executor.memory', '12g'),
@@ -34,7 +33,6 @@ if __name__ == '__main__':
         ('spark.worker.cleanup.appDataTtl', '60'),
         ('spark.jars.packages', 'org.mongodb.spark:mongo-spark-connector:10.0.2')
     ])
-
 
     # create sparksession
     spark = SparkSession \
