@@ -358,7 +358,7 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Amount of Tokens")
+    plt.ylabel("Amount of Assets")
     plt.legend(loc="upper right")
     plt.title("Creation vs. Deletion of Assets (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/5_countNFT/Token_creation_vs_deletion.jpg', dpi=200)
