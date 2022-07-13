@@ -11,7 +11,7 @@ host	all		all		0.0.0.0/0		md5
 # edit configuration to enable replication with wal2json
 sudo nano /etc/postgresql/12/main/postgresql.conf
 
-# add the following lines:
+# change the following lines:
 #------------------------------------------------------------------------------
 # CUSTOMIZED OPTIONS
 #------------------------------------------------------------------------------
@@ -29,6 +29,15 @@ wal_level = logical             # minimal, archive, hot_standby, or logical (cha
 #wal_keep_segments = 4          # in logfile segments, 16MB each; 0 disables
 #wal_sender_timeout = 60s       # in milliseconds; 0 disables
 #max_replication_slots = 1       # max number of replication slots (change requires restart)
+
+#------------------------------------------------------------------------------
+# FILE LOCATIONS
+#------------------------------------------------------------------------------
+
+# The default values of these variables are driven from the -D command-line
+# option or PGDATA environment variable, represented here as ConfigDir.
+
+data_directory = '/mnt/pgdata/postgresql/12/main'
 
 # restart the postgres instance
 
