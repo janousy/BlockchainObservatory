@@ -1,0 +1,12 @@
+[Unit]
+Description=Apache Zeppelin daemon
+After=syslog.target network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/dev/zeppelin-0.10.1-bin-all/bin/zeppelin-daemon.sh start
+ExecStop=/home/ubuntu/dev/zeppelin-0.10.1-bin-all/bin/zeppelin-daemon.sh stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
