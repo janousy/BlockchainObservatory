@@ -92,6 +92,8 @@ if __name__ == '__main__':
 
     # drop all unneccessary columns
     dfStaker = dfStaker.select("addr", "rewards_total", "created_at")
+    # Staker are all accounts which got at least once rewards
+    dfStaker = dfStaker.where(dfStaker.rewards_total > 0)
 
     # calculate hom many algos paid out as rewards
 
