@@ -95,6 +95,7 @@ if __name__ == '__main__':
     # Staker are all accounts which got at least once rewards
     dfStaker = dfStaker.where(dfStaker.rewards_total > 0)
 
+
     # calculate hom many algos paid out as rewards
 
     tRew = dfStaker.agg(F.sum("rewards_total")).collect()[0][0]
@@ -377,8 +378,7 @@ if __name__ == '__main__':
 
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    # +1 because Rewards can be zero
-    mybins = np.logspace(np.log10(minRewards + 1), np.log10(maxRewards), bin_size)
+    mybins = np.logspace(np.log10(minRewards), np.log10(maxRewards), bin_size)
 
     plt.figure()
     plt.hist(rewards, bins=mybins)
