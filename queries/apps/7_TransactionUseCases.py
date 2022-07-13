@@ -1,15 +1,14 @@
+#importstatements
 import matplotlib.pyplot as plt
 import numpy as np
 
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
-from pyspark.sql.functions import *
 import pyspark.sql.functions as F
+
 from pyspark.sql import types
 from pyspark.sql.types import StructField, StringType, LongType, DoubleType, BooleanType, StructType, IntegerType
-
-from pyspark.sql.functions import col, hex, base64, avg, collect_list, concat, lit, max
 
 if __name__ == '__main__':
     # config for our sparksession
@@ -38,7 +37,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("7_TransactionUseCases") \
+        .appName("7_TransactionUseCasesApplication") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
