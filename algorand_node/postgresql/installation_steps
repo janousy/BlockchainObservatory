@@ -1,7 +1,16 @@
 First, we followed the steps listed on this link to install postgresql database for the indexer on the algorand node: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de
+Version 12.9 was used.
 
-Second, we created a databae for the indexer which is also called indexer:
+# edit /etc/postgresql/12/main/pg_hba.conf for external access
+sudo nano /etc/postgresql/12/main/pg_hba.conf
+# add the following line:
+host	all		all		0.0.0.0/0		md5
+
+Second, we created a database for the indexer which is also called indexer:
 sudo -u postgres psql
+
+# create a super user for Algorand called "algorand".
+createuser --interactive
 
 sudo -u postgres createdb indexer
 # check 
@@ -31,3 +40,27 @@ psql -h 127.0.0.1 -U postgres
 3. #check version of postgresql:
 /usr/lib/postgresql/12/bin$ ./postgres -V
 postgres (PostgreSQL) 12.9 (Ubuntu 12.9-0ubuntu0.20.04.1)
+
+# edit configuration to enable replication with wal2json
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+# add the following lines:
+#------------------------------------------------------------------------------
+# CUSTOMIZED OPTIONS
+#------------------------------------------------------------------------------
+
+# Add settings for extensions here
+# LOGGING
+log_min_error_statement = fatal
+# CONNECTION
+listen_addresses = '*'
+# MODULES
+shared_preload_libraries = 'wal2json'
+# REPLICATION
+wal_level = logical             # minimal, archive, hot_standby, or logical (change requires restart)
+#max_wal_senders = 1             # max number of walsender processes (change requires restart)
+#wal_keep_segments = 4          # in logfile segments, 16MB each; 0 disables
+#wal_sender_timeout = 60s       # in milliseconds; 0 disables
+#max_replication_slots = 1       # max number of replication slots (change requires restart)
+
+# restart the postgres instance
