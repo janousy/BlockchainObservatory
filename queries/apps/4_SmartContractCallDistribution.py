@@ -204,7 +204,9 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Call_Distribution_blockround.jpg', dpi=200)
     plt.show()
     plt.close()
-
+    """
+    deleted because it takes too long
+    
     #histogram of every use case
     graphOptIn = dfTx.filter(dfTx.usecase == "opt_in").select("round")
     graphOptIn = graphOptIn.collect()
@@ -248,9 +250,6 @@ if __name__ == '__main__':
     # convert row["data"] to only data
     SCNoOp = [row[0] for (row) in graphNoOp]
 
-    # min
-    minH = dfTx.agg(F.min("round")).collect()[0][0]
-    maxH = dfTx.agg(F.max("round")).collect()[0][0]
 
     # create the graph
     # histogram x-axis round when creating NFT
@@ -258,7 +257,7 @@ if __name__ == '__main__':
 
     bin_size = 100
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minH), np.log10(maxH), bin_size)
+    mybins = np.logspace(np.log10(minSCround), np.log10(maxSCround), bin_size)
 
     plt.figure()
     plt.hist(SCOptIn, bins=mybins, alpha=0.3, label="opt_in")
@@ -281,6 +280,6 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/UseCaseOverBlockround.jpg', dpi=200)
     plt.show()
     plt.close()
-
+    """
     spark.stop()
     raise KeyboardInterrupt
