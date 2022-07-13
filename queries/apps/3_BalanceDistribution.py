@@ -81,10 +81,9 @@ if __name__ == '__main__':
         .save()
 
     # everything with 0
-    dataWith0Accounts = dfAccounts.select("microalgos")
-
+    goldDF = dfAccounts.select("addr", "microalgos")
     # write it back for metabase dashboard
-    dataWith0Accounts.write.format("mongodb") \
+    goldDF.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_silver') \
@@ -93,6 +92,7 @@ if __name__ == '__main__':
         .save()
 
     # preparation for graph
+    dataWith0Accounts = dfAccounts.select("microalgos")
     dataWith0Accounts = dataWith0Accounts.collect()
 
     # convert row["data"] to only data
