@@ -10,7 +10,7 @@ Description=Algorand Indexer daemon
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/algorand-indexer_linux_amd64_2.10.0/algorand-indexer daemon -P "host=localhost port=5432 user=postgres password=postgres dbname=indexer" --algod=/mnt/algorand
+ExecStart=/usr/local/bin/indexer/algorand-indexer_linux_amd64_2.10.0/algorand-indexer daemon -P "host=localhost port=5432 user=postgres password=postgres dbname=indexer" --algod=/mnt/algorand
 User=ubuntu
 Group=ubuntu
 Restart=always
