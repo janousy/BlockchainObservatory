@@ -98,7 +98,7 @@ if __name__ == '__main__':
     dfTxGroupUseCases = dfTx.groupBy("usecase").count()
 
     # newest round has to be calculated
-    newestRound = dfTx.agg(F.max("created_at")).collect()[0][0]
+    newestRound = dfTx.agg(F.max("round")).collect()[0][0]
     dfTxGroupUseCasesGold = dfTxGroupUseCases.withColumn("CreationRound", F.lit(newestRound))
 
     dfTxGroupUseCasesGold.write.format("mongodb") \
