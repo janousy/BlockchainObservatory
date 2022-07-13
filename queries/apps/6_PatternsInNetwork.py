@@ -59,8 +59,6 @@ if __name__ == '__main__':
         .option("query", query) \
         .load()
 
-    dfPattern4.show()
-
     dfPattern4.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
