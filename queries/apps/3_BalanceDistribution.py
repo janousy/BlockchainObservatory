@@ -7,16 +7,17 @@ from pyspark.sql.functions import col, hex, base64, avg, collect_list, concat, l
 import pyspark.sql.functions as F
 
 if __name__ == '__main__':
+    # config for the sparksession
     config = pyspark.SparkConf().setAll([
-        ('spark.executor.memory', '8g'),
-        ('spark.executor.cores', '3'),
-        ('spark.cores.max', '6'),
+        ('spark.executor.memory', '12g'),
+        ('spark.executor.cores', '2'),
+        ('spark.cores.max', '4'),
         ('spark.driver.memory', '2g'),
         ('spark.executor.instances', '1'),
         ('spark.dynamicAllocation.enabled', 'true'),
         ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
         ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '1'),
+        ('spark.dynamicAllocation.minExecutors', '0'),
         ('spark.dynamicAllocation.maxExecutors', '2'),
         ('spark.dynamicAllocation.initialExecutors', '1'),
         ('spark.dynamicAllocation.executorAllocationRatio', '1'),
