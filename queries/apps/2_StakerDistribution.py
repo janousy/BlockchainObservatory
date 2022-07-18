@@ -122,11 +122,11 @@ if __name__ == '__main__':
     # write number of stakers in gold table
     # append to get a history over the development
     addresses = dfStaker.count()
-    newestRound = dfStaker.agg(F.max("created_at")).collect()[0][0]
+    newestRoundStaker = dfStaker.agg(F.max("created_at")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (addresses, newestRound)  # create your data here, be consistent in the types.
+            (addresses, newestRoundStaker)  # create your data here, be consistent in the types.
 
         ],
         ["NrOfAddresses", "CreationRound"]  # add your column names here
@@ -143,11 +143,11 @@ if __name__ == '__main__':
     # write number of stakers in gold table
     # append to get a history over the development
     transactions = dfTx.count()
-    newestRound = dfTx.agg(F.max("applicationRound")).collect()[0][0]
+    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (transactions, newestRound)  # create your data here, be consistent in the types.
+            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
 
         ],
         ["NrOfTransactions", "CreationRound"]  # add your column names here
@@ -189,11 +189,11 @@ if __name__ == '__main__':
                                from_unixtime(col("starttime")).alias("starttime"), "starttimeInSec")
 
     candidacies = dfOnline.count()
-    newestRound = dfOnline.agg(F.max("applicationRound")).collect()[0][0]
+    newestRoundApp = dfOnline.agg(F.max("applicationRound")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (candidacies, newestRound)  # create your data here, be consistent in the types.
+            (candidacies, newestRoundApp)  # create your data here, be consistent in the types.
 
         ],
         ["TotalCandidates", "CreationRound"]  # add your column names here
@@ -325,6 +325,43 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
     plt.show()
     plt.close()
+
+    # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
+    topStakers = dfStaker.select("proportion", "rewards_total", "addr").sort(col("microalgos").desc()).head(10)
+
+    # preparation for graph
+
+    topStakersProportion = [row[0] for (row) in topStakers]
+    topStakersRewards = [row[1] for (row) in topStakers]
+    topStakersAddresses = [row[2] for (row) in topStakers]
+
+    # save the whales, the top 10 whales are saved in a list
+    # the top 10 are plotted
+    name = "Staker "
+    plt.figure()
+    for i in range(5):
+        plt.bar(name + str(i), topStakersProportion[i], width=0.4)
+
+    plt.rcParams["figure.figsize"] = (10, 5)
+    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion)", loc='center', pad=None)
+
+    plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3], topStakersAddresses[4]])
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
+    plt.show()
+    plt.close()
+
+    # write the current whales in gold table
+    column = ["Addresses", "Proportion", "Rewards_in_mAlgos", "CreationRound"]
+    result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards, newestRoundStaker), column)
+
+    # write it back for metabase dashboard
+    result.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("append") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'TopStakers_2') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
 
     spark.stop()
     raise KeyboardInterrupt
