@@ -343,7 +343,7 @@ if __name__ == '__main__':
         plt.bar(name + str(i), topStakersProportion[i], width=0.4)
 
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion)", loc='center', pad=None)
+    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion in pc)", loc='center', pad=None)
 
     plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3], topStakersAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     plt.close()
 
     # write the current whales in gold table
-    column = ["Addresses", "Proportion", "Rewards_in_mAlgos", "CreationRound"]
+    column = ["Addresses", "Proportion_in_pc", "Rewards_in_mAlgos", "CreationRound"]
     result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards, newestRoundStaker), column)
 
     # write it back for metabase dashboard
