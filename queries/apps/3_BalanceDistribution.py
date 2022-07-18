@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # first put value in a df
     result = spark.createDataFrame(
         [
-            (totalAlgos, totalAlgos / 1000, totalAccounts, newestRound)
+            (totalAlgos, totalAlgos / 1000000, totalAccounts, newestRound)
             # create your data here, be consistent in the types.
 
         ],
@@ -82,9 +82,9 @@ if __name__ == '__main__':
         .save()
 
     # everything with 0
-    goldDF = dfAccounts.select("addr", "microalgos")
+    silverDF = dfAccounts.select("addr", "microalgos")
     # write it back for metabase dashboard
-    goldDF.write.format("mongodb") \
+    silverDF.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_silver') \
@@ -161,8 +161,8 @@ if __name__ == '__main__':
     whalesData = dfAccounts.select("microalgos", "addr").sort(col("microalgos").desc()).head(10)
 
     # preparation for graph
-    # convert row["data"] to only data /1000 to reach algos from microalgos
-    whales = [row[0] / 1000 for (row) in whalesData]
+    # convert row["data"] to only data /1000000 to reach algos from microalgos
+    whales = [row[0] / 1000000 for (row) in whalesData]
     whalesAddresses = [row[1] for (row) in whalesData]
 
     # save the whales, the top 10 whales are saved in a list
