@@ -152,7 +152,6 @@ if __name__ == '__main__':
     # collect so a python object is created
     graph = dfTxGroupUseCases.collect()
 
-    # graph, histogram x-axis unix time when starting
     # graph = dfTxGroupUseCases.select("count")
     # graph = dfTxGroupUseCases.collect()
 

@@ -240,39 +240,6 @@ if __name__ == '__main__':
     plt.show()
     plt.close()
 
-    # graph, histogram x-axis unix time when starting
-    graph = dfOnline.select("starttimeInSec")
-
-    # preparation for graph
-    graph = graph.collect()
-
-    # convert row["data"] to only data
-    time = [row[0] for (row) in graph]
-
-    # min
-    minUnixTime = dfOnline.agg(F.min("starttimeInSec")).collect()[0][0]
-
-    maxUnixTime = dfOnline.agg(F.max("starttimeInSec")).collect()[0][0]
-
-    # histogram x-axis round when starting participating
-    # how many bars in the histogram should be plotted
-
-    bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minUnixTime), np.log10(maxUnixTime), bin_size)
-
-    plt.figure()
-    plt.hist(time, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
-    plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel("Unix Time")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Starting to Participate (Unix Time)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_UnixTime.jpg', dpi=200)
-    plt.show()
-    plt.close()
 
     # create a dataframe with all online transactions and convert its time to unix time
     dfOffline = dfTx.filter(dfTx.status == "offline")
@@ -312,39 +279,6 @@ if __name__ == '__main__':
     plt.ylabel("Number of Staker")
     plt.title("Distribution of Staker Ending to Participate (Blockround)", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
-    plt.show()
-    plt.close()
-
-    # graph, histogram x-axis unix time when starting when going offline
-    graph = dfOffline.select("endtimeInSec")
-
-    # preparation for graph
-    graph = graph.collect()
-
-    # convert row["data"] to only data
-    time = [row[0] for (row) in graph]
-
-    # min
-    minOffEndtimeSec = dfOffline.agg(F.min("endtimeInSec")).collect()[0][0]
-
-    maxOffEndtimeSec = dfOffline.agg(F.max("endtimeInSec")).collect()[0][0]
-
-    # histogram x-axis round when starting participating
-    # how many bars in the histogram should be plotted
-
-    bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minOffEndtimeSec), np.log10(maxOffEndtimeSec), bin_size)
-
-    plt.figure()
-    plt.hist(time, bins=mybins)
-    plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel("Unix Time")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Ending to Participate (Unix Time)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_unixtime.jpg', dpi=200)
     plt.show()
     plt.close()
 
