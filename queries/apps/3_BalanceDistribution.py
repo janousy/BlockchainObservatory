@@ -122,7 +122,7 @@ if __name__ == '__main__':
     plt.close()
 
     # cell with no 0 values
-    # get rid off 0 values because they aredestroying the plot
+    # get rid off 0 values because they are destroying the plot
     dfAccNoZero = dfAccounts.filter(dfAccounts.microalgos > 0)
 
     # graph
