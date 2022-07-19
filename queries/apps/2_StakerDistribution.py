@@ -108,7 +108,8 @@ if __name__ == '__main__':
 
     # keyreg is either a node which log in to participate in the network or log off
     dfTx = dfTx.filter(dfTx.txn_type == "keyreg")
-    # distinguish between online and offline transactions, votefst is null when it was an offline application and otherwise the staker has applied to get online
+    # distinguish between online and offline transactions,
+    # votefst is null when it was an offline application and otherwise the staker has applied to get online
     dfTx = dfTx.withColumn("status", F.when(F.col('txn_votefst').isNull(), "offline").otherwise("online"))
 
     # when a staker starts to participate in the network
@@ -176,8 +177,10 @@ if __name__ == '__main__':
 
     # add time to dfTx, where the information about online and offline is stored
     dfTx = dfBlock.join(dfTx, dfBlock.blockround == dfTx.participationRound, "inner")
-    # in pyspark an inner join sometimes does not remove the column properly, therefore to be sure one of the columns is dropped
-    # additionally txn_type is always keyreg therefore not used anymore, and since we have a status txn_votefst can be removed as well
+    # in pyspark an inner join sometimes does not remove the column properly,
+    # therefore to be sure one of the columns is dropped
+    # additionally txn_type is always keyreg therefore not used anymore, and since we have a status
+    # txn_votefst can be removed as well
     dfTx = dfTx.drop("blockround", "txn_type", "txn_votefst")
 
     # create a dataframe with all online transactions and convert its time to unix time
@@ -333,6 +336,7 @@ if __name__ == '__main__':
 
     topStakersProportion = [row[0] for (row) in topStakers]
     topStakersRewards = [row[1] for (row) in topStakers]
+    topStakersRewardsAlgos = [row[1]/1000000 for (row) in topStakers]
     topStakersAddresses = [row[2] for (row) in topStakers]
 
     # save the whales, the top 10 whales are saved in a list
@@ -343,16 +347,19 @@ if __name__ == '__main__':
         plt.bar(name + str(i), topStakersProportion[i], width=0.4)
 
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion in pc)", loc='center', pad=None)
+    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion in pc)", loc='center',
+              pad=None)
 
-    plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3], topStakersAddresses[4]])
+    plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3],
+                topStakersAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
     plt.show()
     plt.close()
 
     # write the current whales in gold table
-    column = ["Addresses", "Proportion_in_pc", "Rewards_in_mAlgos", "CreationRound"]
-    result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards, newestRoundStaker), column)
+    column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
+    result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
+                                       topStakersRewardsAlgos, newestRoundStaker), column)
 
     # write it back for metabase dashboard
     result.write.format("mongodb") \
