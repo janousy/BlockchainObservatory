@@ -238,8 +238,8 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Starting to Participate (Blockround)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.title("Distribution of Nodes Participating Starting Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_Start_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -280,8 +280,8 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Ending to Participate (Blockround)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
+    plt.title("Distribution of Nodes Participating Ending Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_End_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
