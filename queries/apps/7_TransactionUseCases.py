@@ -118,9 +118,9 @@ if __name__ == '__main__':
 
     plt.figure()
     for i in range(len(UCnames)):
-        plt.bar(UCnames[i], UCvalues[i], width=0.4)
-
-    plt.title("Smart Contract Use Case Transactions", loc='center', pad=None)
+        plt.bar(str(i), UCvalues[i], width=0.4)
+    plt.legend(["0: "+str(UCnames[0]), "1: "+str(UCnames[1]), "2: "+str(UCnames[2]), "3: "+str(UCnames[3]), "4: "+str(UCnames[4]), "5: "+str(UCnames[5])])
+    plt.title("Transactions Use Cases", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/7_TransactionUC/TC_Use_Cases.jpg', dpi=200)
     plt.show()
     plt.close()

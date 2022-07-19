@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # first put value in a df
     result = spark.createDataFrame(
         [
-            (totalAlgos, totalAlgos / 1000, totalAccounts, newestRound)
+            (totalAlgos, totalAlgos / 1000000, totalAccounts, newestRound)
             # create your data here, be consistent in the types.
 
         ],
@@ -82,9 +82,9 @@ if __name__ == '__main__':
         .save()
 
     # everything with 0
-    goldDF = dfAccounts.select("addr", "microalgos")
+    silverDF = dfAccounts.select("addr", "microalgos")
     # write it back for metabase dashboard
-    goldDF.write.format("mongodb") \
+    silverDF.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_silver') \
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     plt.close()
 
     # cell with no 0 values
-    # get rid off 0 values because they aredestroying the plot
+    # get rid off 0 values because they are destroying the plot
     dfAccNoZero = dfAccounts.filter(dfAccounts.microalgos > 0)
 
     # graph
@@ -158,19 +158,20 @@ if __name__ == '__main__':
     plt.close()
 
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
-    whalesData = dfAccounts.select("microalgos", "addr").sort(col("microalgos").desc()).head(10)
+    whalesData = dfAccounts.select("addr", "microalgos", "proportion").sort(col("microalgos").desc()).head(10)
 
     # preparation for graph
-    # convert row["data"] to only data /1000 to reach algos from microalgos
-    whales = [row[0] / 1000 for (row) in whalesData]
-    whalesAddresses = [row[1] for (row) in whalesData]
+    # convert row["data"] to only data /1000000 to reach algos from microalgos
+    whalesAlgos = [row[1] / 1000000 for (row) in whalesData]
+    whalesAddresses = [row[0] for (row) in whalesData]
+    whalesProportion = [row[2] for (row) in whalesData]
 
     # save the whales, the top 10 whales are saved in a list
     # the top 10 are plotted
     name = "whale "
     plt.figure()
     for i in range(5):
-        plt.bar(name + str(i), whales[i], width=0.4)
+        plt.bar(name + str(i), whalesAlgos[i], width=0.4)
 
     plt.rcParams["figure.figsize"] = (10, 5)
     plt.title("5 Biggest Whales with their Account Balances in Algos", loc='center', pad=None)
@@ -181,8 +182,8 @@ if __name__ == '__main__':
     plt.close()
 
     # write the current whales in gold table
-    column = ["Addresses", "Algos"]
-    result = spark.createDataFrame(zip(whalesAddresses, whales), column)
+    column = ["Address", "Algos", "Proportion"]
+    result = spark.createDataFrame(zip(whalesAddresses, whalesAlgos, whalesProportion), column)
 
     # write it back for metabase dashboard
     result.write.format("mongodb") \

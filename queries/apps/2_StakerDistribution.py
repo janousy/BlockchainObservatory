@@ -108,7 +108,8 @@ if __name__ == '__main__':
 
     # keyreg is either a node which log in to participate in the network or log off
     dfTx = dfTx.filter(dfTx.txn_type == "keyreg")
-    # distinguish between online and offline transactions, votefst is null when it was an offline application and otherwise the staker has applied to get online
+    # distinguish between online and offline transactions,
+    # votefst is null when it was an offline application and otherwise the staker has applied to get online
     dfTx = dfTx.withColumn("status", F.when(F.col('txn_votefst').isNull(), "offline").otherwise("online"))
 
     # when a staker starts to participate in the network
@@ -122,11 +123,11 @@ if __name__ == '__main__':
     # write number of stakers in gold table
     # append to get a history over the development
     addresses = dfStaker.count()
-    newestRound = dfStaker.agg(F.max("created_at")).collect()[0][0]
+    newestRoundStaker = dfStaker.agg(F.max("created_at")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (addresses, newestRound)  # create your data here, be consistent in the types.
+            (addresses, newestRoundStaker)  # create your data here, be consistent in the types.
 
         ],
         ["NrOfAddresses", "CreationRound"]  # add your column names here
@@ -143,11 +144,11 @@ if __name__ == '__main__':
     # write number of stakers in gold table
     # append to get a history over the development
     transactions = dfTx.count()
-    newestRound = dfTx.agg(F.max("applicationRound")).collect()[0][0]
+    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (transactions, newestRound)  # create your data here, be consistent in the types.
+            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
 
         ],
         ["NrOfTransactions", "CreationRound"]  # add your column names here
@@ -176,8 +177,10 @@ if __name__ == '__main__':
 
     # add time to dfTx, where the information about online and offline is stored
     dfTx = dfBlock.join(dfTx, dfBlock.blockround == dfTx.participationRound, "inner")
-    # in pyspark an inner join sometimes does not remove the column properly, therefore to be sure one of the columns is dropped
-    # additionally txn_type is always keyreg therefore not used anymore, and since we have a status txn_votefst can be removed as well
+    # in pyspark an inner join sometimes does not remove the column properly,
+    # therefore to be sure one of the columns is dropped
+    # additionally txn_type is always keyreg therefore not used anymore, and since we have a status
+    # txn_votefst can be removed as well
     dfTx = dfTx.drop("blockround", "txn_type", "txn_votefst")
 
     # create a dataframe with all online transactions and convert its time to unix time
@@ -189,11 +192,11 @@ if __name__ == '__main__':
                                from_unixtime(col("starttime")).alias("starttime"), "starttimeInSec")
 
     candidacies = dfOnline.count()
-    newestRound = dfOnline.agg(F.max("applicationRound")).collect()[0][0]
+    newestRoundApp = dfOnline.agg(F.max("applicationRound")).collect()[0][0]
 
     result = spark.createDataFrame(
         [
-            (candidacies, newestRound)  # create your data here, be consistent in the types.
+            (candidacies, newestRoundApp)  # create your data here, be consistent in the types.
 
         ],
         ["TotalCandidates", "CreationRound"]  # add your column names here
@@ -235,44 +238,11 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Starting to Participate (Blockround)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.title("Distribution of Nodes Participating Starting Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_Start_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
-    # graph, histogram x-axis unix time when starting
-    graph = dfOnline.select("starttimeInSec")
-
-    # preparation for graph
-    graph = graph.collect()
-
-    # convert row["data"] to only data
-    time = [row[0] for (row) in graph]
-
-    # min
-    minUnixTime = dfOnline.agg(F.min("starttimeInSec")).collect()[0][0]
-
-    maxUnixTime = dfOnline.agg(F.max("starttimeInSec")).collect()[0][0]
-
-    # histogram x-axis round when starting participating
-    # how many bars in the histogram should be plotted
-
-    bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minUnixTime), np.log10(maxUnixTime), bin_size)
-
-    plt.figure()
-    plt.hist(time, bins=mybins)
-    # plt.rcParams["figure.figsize"] = [7.50, 3.50]
-    plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel("Unix Time")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Starting to Participate (Unix Time)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_Start_Distribution_UnixTime.jpg', dpi=200)
-    plt.show()
-    plt.close()
 
     # create a dataframe with all online transactions and convert its time to unix time
     dfOffline = dfTx.filter(dfTx.status == "offline")
@@ -310,41 +280,8 @@ if __name__ == '__main__':
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Ending to Participate (Blockround)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_Blockround.jpg', dpi=200)
-    plt.show()
-    plt.close()
-
-    # graph, histogram x-axis unix time when starting when going offline
-    graph = dfOffline.select("endtimeInSec")
-
-    # preparation for graph
-    graph = graph.collect()
-
-    # convert row["data"] to only data
-    time = [row[0] for (row) in graph]
-
-    # min
-    minOffEndtimeSec = dfOffline.agg(F.min("endtimeInSec")).collect()[0][0]
-
-    maxOffEndtimeSec = dfOffline.agg(F.max("endtimeInSec")).collect()[0][0]
-
-    # histogram x-axis round when starting participating
-    # how many bars in the histogram should be plotted
-
-    bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minOffEndtimeSec), np.log10(maxOffEndtimeSec), bin_size)
-
-    plt.figure()
-    plt.hist(time, bins=mybins)
-    plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel("Unix Time")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Staker Ending to Participate (Unix Time)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_End_Distribution_unixtime.jpg', dpi=200)
+    plt.title("Distribution of Nodes Participating Ending Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_End_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -391,6 +328,47 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
     plt.show()
     plt.close()
+
+    # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
+    topStakers = dfStaker.select("proportion", "rewards_total", "addr").sort(col("microalgos").desc()).head(10)
+
+    # preparation for graph
+
+    topStakersProportion = [row[0] for (row) in topStakers]
+    topStakersRewards = [row[1] for (row) in topStakers]
+    topStakersRewardsAlgos = [row[1]/1000000 for (row) in topStakers]
+    topStakersAddresses = [row[2] for (row) in topStakers]
+
+    # save the whales, the top 10 whales are saved in a list
+    # the top 10 are plotted
+    name = "Staker "
+    plt.figure()
+    for i in range(5):
+        plt.bar(name + str(i), topStakersProportion[i], width=0.4)
+
+    plt.rcParams["figure.figsize"] = (10, 5)
+    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion in pc)", loc='center',
+              pad=None)
+
+    plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3],
+                topStakersAddresses[4]])
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
+    plt.show()
+    plt.close()
+
+    # write the current whales in gold table
+    column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
+    result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
+                                       topStakersRewardsAlgos, newestRoundStaker), column)
+
+    # write it back for metabase dashboard
+    result.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("append") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'TopStakers_2') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
 
     spark.stop()
     raise KeyboardInterrupt
