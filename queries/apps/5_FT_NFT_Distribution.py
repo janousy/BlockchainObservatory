@@ -130,12 +130,11 @@ if __name__ == '__main__':
     # the plot is saved to the VM
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minNFTrounds), np.log10(maxNFTrounds), bin_size)
+    #mybins = np.logspace(np.log10(minNFTrounds), np.log10(maxNFTrounds), bin_size)
 
     plt.figure()
-    plt.hist(roundsNFT, bins=mybins)
+    plt.hist(roundsNFT, bins=bin_size)
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of NFTs")
@@ -160,12 +159,11 @@ if __name__ == '__main__':
     # histogram x-axis round when creating NFT
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minFTrounds), np.log10(maxFTrounds), bin_size)
+    #mybins = np.logspace(np.log10(minFTrounds), np.log10(maxFTrounds), bin_size)
 
     plt.figure()
-    plt.hist(roundsFT, bins=mybins)
+    plt.hist(roundsFT, bins=bin_size)
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of FTs")
@@ -179,13 +177,12 @@ if __name__ == '__main__':
     # the graph is saved on the vm
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minFTrounds), np.log10(maxFTrounds), bin_size)
+    #mybins = np.logspace(np.log10(minFTrounds), np.log10(maxFTrounds), bin_size)
 
     plt.figure()
-    plt.hist(roundsNFT, bins=mybins, alpha=0.5, label="NFT")
-    plt.hist(roundsFT, bins=mybins, alpha=0.5, label="FT")
+    plt.hist(roundsNFT, bins=bin_size, alpha=0.5, label="NFT")
+    plt.hist(roundsFT, bins=bin_size, alpha=0.5, label="FT")
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Tokens")
@@ -258,13 +255,12 @@ if __name__ == '__main__':
     # histogram when all assets are created and when all assets are deleted
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
+    #mybins = np.logspace(np.log10(minRounds), np.log10(maxRounds), bin_size)
 
     plt.figure()
-    plt.hist(roundsCreated, bins=mybins, alpha=0.5, label="created")
-    plt.hist(roundsDeleted, bins=mybins, alpha=0.5, label="deleted")
+    plt.hist(roundsCreated, bins=bin_size, alpha=0.5, label="created")
+    plt.hist(roundsDeleted, bins=bin_size, alpha=0.5, label="deleted")
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Assets")

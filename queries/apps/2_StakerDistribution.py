@@ -330,7 +330,7 @@ if __name__ == '__main__':
     plt.close()
 
     # graph select only account balances, sort it from highest to lowest and take the highest 10 balances
-    topStakers = dfStaker.select("proportion", "rewards_total", "addr").sort(col("microalgos").desc()).head(10)
+    topStakers = dfStaker.select("proportion", "rewards_total", "addr").sort(col("rewards_total").desc()).head(10)
 
     # preparation for graph
 
