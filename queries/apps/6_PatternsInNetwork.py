@@ -1,12 +1,13 @@
 import pyspark
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum
 
 if __name__ == '__main__':
     config = pyspark.SparkConf().setAll([
-        ('spark.executor.memory', '48g'),
+        ('spark.executor.memory', '16g'),
         ('spark.executor.cores', '4'),
         ('spark.cores.max', '4'),
-        ('spark.driver.memory', '48g'),
+        ('spark.driver.memory', '16'),
         ('spark.executor.instances', '1'),
         ('spark.worker.cleanup.enabled', 'true'),
         ('spark.worker.cleanup.interval', '60'),
@@ -21,31 +22,133 @@ if __name__ == '__main__':
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
-    # Pattern 2
+    # Pattern 1
 
-    query = """
-    MATCH (a1:Account)-[r1:APPLICATION_CALL]->(app:Application)<-[r2:APPLICATION_CALL]-(a2:Account) 
-    WHERE a1.account <> a2.account AND r1.blockNumber > 0 AND r2.blockNumber > 0 AND abs(r2.blockNumber - r1.blockNumber) < 17280 
-    WITH a1.account AS account, app.application AS application, r1.blockNumber as blockNumber
-    RETURN DISTINCT application, account, blockNumber
+    query1 = """
+    MATCH (a1:Account)-[r1:PAYMENT]->(a2:Account)-[r2:PAYMENT]->(a3:Account)
+    USING INDEX r1:PAYMENT(amount)
+    USING INDEX r2:PAYMENT(amount)
+    WHERE r2.amount > 100000000000 AND r1.amount > 100000000000 AND a1.account <> a2.account AND a2.account <> a3.account
+    WITH DISTINCT r1 AS rela, a1.account AS senderAccount
+    RETURN senderAccount
     """
 
-    dfPattern3 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
-        .load()
+    print("START PATTERN 1")
 
-    dfPattern3.write.format("mongodb") \
+    dfPattern1 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query1) \
+        .load() \
+        .groupBy("senderAccount").count().sort(col("count").desc()) \
+        .write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'Patterns_ScCallsFromDifferentAcc_6') \
+        .option('spark.mongodb.collection', 'Patterns_LargePaymentTransactionAccounts_6') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    print("END PATTERN 1")
+
+    # Pattern 2
+
+    query2 = """
+    MATCH (a1:Account)-[r:ASSET_TRANSFER]->(a2:Account)
+    USING INDEX r:ASSET_TRANSFER(transferType)
+    WHERE a1.account <> a2.account AND r.transferType="transfer"
+    WITH a1.account AS senderAccount, count(r) AS rel_count
+    RETURN senderAccount, rel_count
+    ORDER BY rel_count DESC 
+    """
+
+    print("START PATTERN 2")
+
+    dfPattern2 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query2) \
+        .load() \
+        .write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'Patterns_ManyAssetTransferAcc_6') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    print("END PATTERN 2")
+
     # Pattern 3
 
-    query = """
+    query3 = """
+    MATCH (a1:Account)-[r:ASSET_CONFIGURATION]->(a2:Asset)
+    WHERE r.configurationType = "creation"
+    WITH a1.account AS senderAccount, count(r) AS rel_count
+    RETURN senderAccount, rel_count
+    ORDER BY rel_count DESC
+    """
+
+    print("START PATTERN 3")
+
+    dfPattern3 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query3) \
+        .load() \
+        .write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'Patterns_AccAssetCreation_6') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    print("END PATTERN 3")
+
+    # Pattern 4
+
+    query4 = """
+    MATCH (a1:Account)-[r1:APPLICATION_CALL]->(app:Application)<-[r2:APPLICATION_CALL]-(a2:Account)
+    USING INDEX r1:APPLICATION_CALL(blockNumber)
+    USING INDEX r2:APPLICATION_CALL(blockNumber)
+    WHERE a1.account <> a2.account AND r1.blockNumber > 0 AND r2.blockNumber > 0 AND abs(r2.blockNumber - r1.blockNumber) < 17280 
+    WITH a1.account AS account, app.application AS application, r1.blockNumber AS blockNumber
+    RETURN DISTINCT application, account, blockNumber
+    """
+
+    print("START PATTERN 4.1")
+
+    dfPattern4 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query4) \
+        .load() \
+        .write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_silver') \
+        .option('spark.mongodb.collection', 'Patterns_ScCallsFromDifferentAccRaw_6') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    print("END PATTERN 4.1")
+    print("START PATTERN 4.2")
+
+    dfPattern4 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query4) \
+        .load() \
+        .groupBy("application").count() \
+        .write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'Patterns_ScCallsGrouped_6') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    print("END PATTERN 4.2")
+
+    # Pattern 5
+
+    query5 = """
     MATCH (a1:Account)-[r:PAYMENT]->(a2:Account) 
     WHERE r.amount < 100000 AND a1.account <> a2.account 
     WITH count(r) AS rel_count, a1.account AS senderAccount, a2.account AS receiverAccount
@@ -54,12 +157,13 @@ if __name__ == '__main__':
     ORDER BY rel_count DESC
     """
 
-    dfPattern4 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
-        .load()
+    print("START PATTERN 5.1")
 
-    dfPattern4.write.format("mongodb") \
+    dfPattern5 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query5) \
+        .load() \
+        .write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
@@ -67,9 +171,27 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    print("END PATTERN 5.1")
+    print("START PATTERN 5.2")
+
+    dfPattern5 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query5) \
+        .load() \
+        .groupBy("senderAccount").sum("rel_count") \
+        .write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("overwrite") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'Patterns_AccWithManyPaymentTransactionsSum_6') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
+    print("END PATTERN 5.2")
+
     # Graph Projection
-    query = """
-     CALL gds.graph.project(
+    queryGraphProjection = """
+    CALL gds.graph.project(
       "paymentGraph",
       "Account",                         
       {
@@ -81,29 +203,34 @@ if __name__ == '__main__':
      RETURN graph, nodeProjection, nodes, relationshipProjection, rels
     """
 
+    print("START PATTERN GRAPH_PROJECTION")
+
     dfPaymentGraphProjection = spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
+        .option("query", queryGraphProjection) \
         .option("partitions", "1") \
         .load()
 
-    # Pattern 4
+    print("END PATTERN GRAPH_PROJECTION")
 
-    query = """
+    # Pattern 6
+
+    query6 = """
     CALL gds.degree.stream('paymentGraph')
     YIELD nodeId, score
     WITH gds.util.asNode(nodeId).account AS account, score AS degree
-    ORDER BY degree DESC limit 50
+    ORDER BY degree DESC LIMIT 50
     RETURN account, degree
     """
 
-    dfPattern5 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
-        .option("partitions", "1") \
-        .load()
+    print("START PATTERN 6")
 
-    dfPattern5.write.format("mongodb") \
+    dfPattern6 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query6) \
+        .option("partitions", "1") \
+        .load() \
+        .write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
@@ -111,23 +238,26 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
-    # Pattern 5
+    print("END PATTERN 6")
 
-    query = """
+    # Pattern 7
+
+    query7 = """
     CALL gds.eigenvector.stream('paymentGraph')
     YIELD nodeId, score
-    WITH gds.util.asNode(nodeId).account AS account, score as eigenVectorScore
-    ORDER BY eigenVectorScore DESC limit 10
+    WITH gds.util.asNode(nodeId).account AS account, score AS eigenVectorScore
+    ORDER BY eigenVectorScore DESC LIMIT 10
     RETURN account, eigenVectorScore
     """
 
-    dfPattern6 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
-        .option("partitions", "1") \
-        .load()
+    print("START PATTERN 7")
 
-    dfPattern6.write.format("mongodb") \
+    dfPattern7 = spark.read.format("org.neo4j.spark.DataSource") \
+        .option("url", "bolt://172.23.149.212:7687") \
+        .option("query", query7) \
+        .option("partitions", "1") \
+        .load() \
+        .write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
@@ -135,20 +265,25 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    print("END PATTERN 7")
+
     # Removing Graph Projection
 
-    query = """
+    queryRemovingGraphProjection = """
     CALL gds.graph.drop('paymentGraph') 
     YIELD graphName 
     RETURN graphName
     """
 
+    print("START PATTERN REMOVE_GRAPH_PROJECTION")
+
     spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query) \
+        .option("query", queryRemovingGraphProjection) \
         .load()
 
-    # Stopping spark context
+    print("END PATTERN REMOVE_GRAPH_PROJECTION")
 
+    # Stopping spark context
     spark.stop()
     raise KeyboardInterrupt
