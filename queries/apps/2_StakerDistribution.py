@@ -220,9 +220,9 @@ if __name__ == '__main__':
     rounds = [row[0] for (row) in graph]
 
     # min
-    minParticipationRound = dfOnline.agg(F.min("participationRound")).collect()[0][0]
+    minParticipationRound = dfOnline.agg(F.min("applicationRound")).collect()[0][0]
 
-    maxParticipationRound = dfOnline.agg(F.max("participationRound")).collect()[0][0]
+    maxParticipationRound = newestRoundApp
 
     # histogram x-axis round when starting participating
     # how many bars in the histogram should be plotted
