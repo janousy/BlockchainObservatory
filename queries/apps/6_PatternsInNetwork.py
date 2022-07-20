@@ -161,7 +161,7 @@ if __name__ == '__main__':
     print("END PATTERN 5.1")
     print("START PATTERN 5.2")
 
-    dfPattern5Summed = dfPattern5.groupBy("senderAccount").sum("rel_count")
+    dfPattern5Summed = dfPattern5.groupBy("senderAccount").sum("rel_count").sort(col("sum(rel_count)").desc())
 
     dfPattern5Summed.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
