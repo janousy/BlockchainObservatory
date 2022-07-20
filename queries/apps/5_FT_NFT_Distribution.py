@@ -211,6 +211,10 @@ if __name__ == '__main__':
     # the same for FT
     dfFT = dfBlock.join(dfFT, dfBlock.blockround == dfFT.created_at, "inner")
 
+   #inner join doesn't delete the duplicated rows, therefore drop it manually
+    dfNFT = dfNFT.drop("blockround")
+    dfFT = dfFT.drop("blockround")
+
     # post the dfNFT and dfFT in the silvertable after joining
     dfNFT.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
