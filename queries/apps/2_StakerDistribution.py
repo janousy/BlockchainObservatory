@@ -229,12 +229,10 @@ if __name__ == '__main__':
 
     bin_size = 50
     # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minParticipationRound), np.log10(maxParticipationRound), bin_size)
 
     plt.figure()
-    plt.hist(rounds, bins=mybins)
+    plt.hist(rounds, bins=bin_size)
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")
@@ -270,13 +268,10 @@ if __name__ == '__main__':
     # how many bars in the histogram should be plotted
 
     bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minOffParticipationRound), np.log10(maxOffParticipationRound), bin_size)
 
     plt.figure()
-    plt.hist(roundsOffline, bins=mybins)
+    plt.hist(roundsOffline, bins=bin_size)
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Staker")

@@ -189,13 +189,10 @@ if __name__ == '__main__':
     # how many bars in the histogram should be plotted
 
     bin_size = 50
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minSCround), np.log10(maxSCround), bin_size)
 
     plt.figure()
-    plt.hist(SCcalls, bins=mybins)
+    plt.hist(SCcalls, bins=bin_size)
     plt.rcParams["figure.autolayout"] = True
-    plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Blockround")
     plt.ylabel("Number of Smart Contract Calls")
@@ -203,82 +200,6 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/SC_Call_Distribution_blockround.jpg', dpi=200)
     plt.show()
     plt.close()
-    """
-    deleted because it takes too long
-    
-    #histogram of every use case
-    graphOptIn = dfTx.filter(dfTx.usecase == "opt_in").select("round")
-    graphOptIn = graphOptIn.collect()
 
-    # convert row["data"] to only data
-    SCOptIn = [row[0] for (row) in graphOptIn]
-
-    graphCloseOut = dfTx.filter(dfTx.usecase == "close_out").select("round")
-    graphCloseOut = graphCloseOut.collect()
-
-    # convert row["data"] to only data
-    SCCloseOut = [row[0] for (row) in graphCloseOut]
-
-    graphClear = dfTx.filter(dfTx.usecase == "clear_state").select("round")
-    graphClear = graphClear.collect()
-
-    # convert row["data"] to only data
-    SCClear = [row[0] for (row) in graphClear]
-
-    graphUpdate = dfTx.filter(dfTx.usecase == "updateSC").select("round")
-    graphUpdate = graphUpdate.collect()
-
-    # convert row["data"] to only data
-    SCUpdate = [row[0] for (row) in graphUpdate]
-
-    graphDelete = dfTx.filter(dfTx.usecase == "deleteSC").select("round")
-    graphDelete = graphDelete.collect()
-
-    # convert row["data"] to only data
-    SCDelete = [row[0] for (row) in graphDelete]
-
-    graphCreate = dfTx.filter(dfTx.usecase == "createSC").select("round")
-    graphCreate = graphCreate.collect()
-
-    # convert row["data"] to only data
-    SCcreate = [row[0] for (row) in graphCreate]
-
-    graphNoOp = dfTx.filter(dfTx.usecase == "NoOp").select("round")
-    graphNoOp = graphNoOp.collect()
-
-    # convert row["data"] to only data
-    SCNoOp = [row[0] for (row) in graphNoOp]
-
-
-    # create the graph
-    # histogram x-axis round when creating NFT
-    # how many bars in the histogram should be plotted
-
-    bin_size = 100
-    # distribute bins log(equally) over the whole data
-    mybins = np.logspace(np.log10(minSCround), np.log10(maxSCround), bin_size)
-
-    plt.figure()
-    plt.hist(SCOptIn, bins=mybins, alpha=0.3, label="opt_in")
-    plt.hist(SCCloseOut, bins=mybins, alpha=0.3, label="close_out")
-    plt.hist(SCClear, bins=mybins, alpha=0.3, label="clear_state")
-    plt.hist(SCUpdate, bins=mybins, alpha=0.3, label="updateSC")
-    plt.hist(SCDelete, bins=mybins, alpha=0.3, label="deleteSC")
-    plt.hist(SCcreate, bins=mybins, alpha=0.3, label="createSC")
-    plt.hist(SCNoOp, bins=mybins, alpha=0.3, label="NoOp")
-
-    plt.rcParams["figure.autolayout"] = True
-
-    plt.xscale('log')
-    plt.yscale('log')
-
-    plt.xlabel("Blockround")
-    plt.ylabel("Number of Calls")
-    plt.legend(loc="upper right")
-    plt.title("Use Case Distribution (Blockround)", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/4_ScDistribution/UseCaseOverBlockround.jpg', dpi=200)
-    plt.show()
-    plt.close()
-    """
     spark.stop()
     raise KeyboardInterrupt
