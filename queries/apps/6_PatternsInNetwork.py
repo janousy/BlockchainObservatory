@@ -44,7 +44,7 @@ if __name__ == '__main__':
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'Patterns_LargePaymentTransactionAccounts_6') \
+        .option('spark.mongodb.collection', 'Patterns_LargePaymentTransactionAcc_6') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
@@ -107,44 +107,30 @@ if __name__ == '__main__':
 
     query4 = """
     MATCH (a1:Account)-[r1:APPLICATION_CALL]->(app:Application)<-[r2:APPLICATION_CALL]-(a2:Account)
-    USING INDEX r1:APPLICATION_CALL(blockNumber)
-    USING INDEX r2:APPLICATION_CALL(blockNumber)
-    WHERE a1.account <> a2.account AND r1.blockNumber > 0 AND r2.blockNumber > 0 AND abs(r2.blockNumber - r1.blockNumber) < 17280 
-    WITH a1.account AS account, app.application AS application, r1.blockNumber AS blockNumber
-    RETURN DISTINCT application, account, blockNumber
+    USING INDEX r1:APPLICATION_CALL(applicationCallType)
+    USING INDEX r2:APPLICATION_CALL(applicationCallType)
+    WHERE a1.account <> a2.account AND r1.applicationCallType = "update" AND r2.applicationCallType = "update"
+    WITH  DISTINCT app.application AS application, a1.account AS account1, a2.account AS account2
+    RETURN DISTINCT application, account1
+    ORDER BY application
     """
 
-    print("START PATTERN 4.1")
+    print("START PATTERN 4")
 
     dfPattern4 = spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
         .option("query", query4) \
         .load() \
-        .write.format("mongodb") \
-        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
-        .mode("overwrite") \
-        .option('spark.mongodb.database', 'algorand_silver') \
-        .option('spark.mongodb.collection', 'Patterns_ScCallsFromDifferentAccRaw_6') \
-        .option("forceDeleteTempCheckpointLocation", "true") \
-        .save()
-
-    print("END PATTERN 4.1")
-    print("START PATTERN 4.2")
-
-    dfPattern4 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query4) \
-        .load() \
-        .groupBy("application").count() \
         .write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'Patterns_ScCallsGrouped_6') \
+        .option('spark.mongodb.collection', 'Patterns_ScUpdatesFromDifferentAcc_6') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
-    print("END PATTERN 4.2")
+    print("END PATTERN 4")
+
 
     # Pattern 5
 
@@ -162,28 +148,26 @@ if __name__ == '__main__':
     dfPattern5 = spark.read.format("org.neo4j.spark.DataSource") \
         .option("url", "bolt://172.23.149.212:7687") \
         .option("query", query5) \
-        .load() \
-        .write.format("mongodb") \
+        .load()
+
+    dfPattern5.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
-        .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'Patterns_AccountsWithManyPaymentTransactions_6') \
+        .option('spark.mongodb.database', 'algorand_silver') \
+        .option('spark.mongodb.collection', 'Patterns_AccWithManyPaymentTxs_6') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
     print("END PATTERN 5.1")
     print("START PATTERN 5.2")
 
-    dfPattern5 = spark.read.format("org.neo4j.spark.DataSource") \
-        .option("url", "bolt://172.23.149.212:7687") \
-        .option("query", query5) \
-        .load() \
-        .groupBy("senderAccount").sum("rel_count") \
-        .write.format("mongodb") \
+    dfPattern5Summed = dfPattern5.groupBy("senderAccount").sum("rel_count").sort(col("sum(rel_count)").desc())
+
+    dfPattern5Summed.write.format("mongodb") \
         .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
         .mode("overwrite") \
         .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'Patterns_AccWithManyPaymentTransactionsSum_6') \
+        .option('spark.mongodb.collection', 'Patterns_AccWithManyPaymentTxsSum_6') \
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
