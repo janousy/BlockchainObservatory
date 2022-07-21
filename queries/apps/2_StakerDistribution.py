@@ -285,8 +285,8 @@ if __name__ == '__main__':
     bin_size = 50
 
     plt.figure()
-    plt.hist(rounds, bins=bin_size, alpha=0.5, label="NFT")
-    plt.hist(roundsOffline, bins=bin_size, alpha=0.5, label="FT")
+    plt.hist(rounds, bins=bin_size, alpha=0.5, label="Starting Rounds")
+    plt.hist(roundsOffline, bins=bin_size, alpha=0.5, label="Ending Rounds")
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
