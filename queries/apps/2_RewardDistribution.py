@@ -235,9 +235,9 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Number of Nodes")
-    plt.title("Distribution of Nodes Participating Starting Blockround", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.ylabel("Number of Accounts")
+    plt.title("Distribution of Accounts Participating Starting Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Account_Start_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -274,9 +274,9 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Number of Nodes")
-    plt.title("Distribution of Nodes Participating Ending Blockround", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_End_Distribution_Blockround.jpg', dpi=200)
+    plt.ylabel("Number of Accounts")
+    plt.title("Distribution of Accounts Participating Ending Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Accounts_End_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -290,9 +290,9 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Number of Nodes")
+    plt.ylabel("Number of Accounts")
     plt.legend(loc="upper right")
-    plt.title("Nodes Starting vs. Ending in the Consensus", loc='center', pad=None)
+    plt.title("Accounts Starting vs. Ending in the Consensus", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Starting_vs_Ending_Consensus.jpg', dpi=200)
     plt.show()
     plt.close()
@@ -335,7 +335,7 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Microalgos")
-    plt.ylabel("Number of Nodes")
+    plt.ylabel("Number of Accounts")
     plt.title("Reward Distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
     plt.show()
@@ -353,13 +353,13 @@ if __name__ == '__main__':
 
     # save the whales, the top 10 whales are saved in a list
     # the top 10 are plotted
-    name = "Node "
+    name = "Account "
     plt.figure()
     for i in range(5):
         plt.bar(name + str(i), topStakersProportion[i], width=0.4)
 
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("The Nodes with the Biggest Rewards Compared to All Rewards", loc='center',
+    plt.title("The Accounts with the Biggest Rewards Compared to All Rewards", loc='center',
               pad=None)
     plt.ylabel("Proportion in %")
     plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3],
