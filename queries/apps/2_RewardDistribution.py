@@ -36,7 +36,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("2_StakerDistributionApplication") \
+        .appName("2_RewardDistributionApplication") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
