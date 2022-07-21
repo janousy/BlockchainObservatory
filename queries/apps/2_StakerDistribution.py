@@ -354,7 +354,7 @@ if __name__ == '__main__':
     # write the current whales in gold table
     column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
     result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
-                                       topStakersRewardsAlgos, newestRoundStaker), column)
+                                       topStakersRewardsAlgos, F.lit(newestRoundStaker), column))
 
     # write it back for metabase dashboard
     result.write.format("mongodb") \
