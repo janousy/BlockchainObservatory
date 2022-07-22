@@ -367,11 +367,12 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
     plt.show()
     plt.close()
-
+    #creates a helperlist for the appended date / round
+    newestRoundStaker = [newestRoundStaker] * 10
     # write the current whales in gold table
     column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
     result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
-                                       topStakersRewardsAlgos, F.lit(newestRoundStaker), column))
+                                       topStakersRewardsAlgos, newestRoundStaker), column)
 
     # write it back for metabase dashboard
     result.write.format("mongodb") \
