@@ -1,0 +1,17 @@
+Below is the procedure to create the indexer database:
+
+- If you get an error like: **Ledger does not have entry**, ****the node is not configured as archival (see above), or the indexer data needs to be deleted first in the database table.
+- It’s best practice to start a fresh node as archival and start the indexer immediately afterwards.
+
+#Navigate to the directory of the binary file.
+cd /usr/local/bin/indexer/algorand-indexer_linux_amd64_2.10.0
+
+#Check which options can be used while running the indexer binary file.
+./algorand-indexer daemon -h
+
+#Start indexer in write mode to populate the database:
+/usr/local/bin/indexer/algorand-indexer_linux_amd64_2.10.0/algorand-indexer daemon -P "host=localhost port=5432 user=postgres password=postgres dbname=indexer" --algod=/mnt/algorand
+
+#Start the indexer in read-only, e.g. to prevent the postgres from becoming larger
+#This allows providing the REST API still
+./algorand-indexer daemon -P "host=localhost port=5432 user=postgres password=postgres dbname=indexer"  --no-algod

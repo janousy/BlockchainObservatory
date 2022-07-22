@@ -1,0 +1,22 @@
+In /lib/systemd/system, create a file algorand-indexer.service:
+
+cd /lib/systemd/system
+sudo touch algorand-indexer.service
+sudo nano algorand-indexer.service
+
+with the contents as below:
+[Unit]
+Description=Algorand Indexer daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/indexer/algorand-indexer_linux_amd64_2.10.0/algorand-indexer daemon -P "host=localhost port=5432 user=postgres password=postgres dbname=indexer" --algod=/mnt/algorand
+User=ubuntu
+Group=ubuntu
+Restart=always
+RestartSec=5s
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

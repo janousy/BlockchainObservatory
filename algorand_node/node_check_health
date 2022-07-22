@@ -1,0 +1,2 @@
+curl --location -g --request GET 'http://172.23.149.211:4001/health' \
+--header 'X-Algo-API-Token: 3d8e7fbd4fa2b717f754c60a86418aeb1c678d776e3c0903579c6aa444e74808'

@@ -1,0 +1,13 @@
+#Install sqlite3
+sudo apt install sqlite3
+
+#Connect
+sqlite3
+.open "/var/lib/algorand/mainnet-v1.0/ledger.block.sqlite"
+.open "/var/lib/algorand/mainnet-v1.0/ledger.tracker.sqlite"
+.databases
+select * from sqlite_master;
+select min(rnd) from blocks;
+# conclusion => switching to archive false removes data
+
+SELECT sql FROM sqlite_master WHERE tbl_name = 'blocks' AND type = 'table';

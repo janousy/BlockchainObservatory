@@ -1,0 +1,77 @@
+First, we followed the steps listed on this link to install postgresql database for the indexer on the algorand node: https://www.digitalocean.com/community/tutorials/how-to-install-postgresql-on-ubuntu-20-04-quickstart-de
+Version 12.9 was used.
+
+# CONFIGURATION
+
+# edit /etc/postgresql/12/main/pg_hba.conf for external access
+sudo nano /etc/postgresql/12/main/pg_hba.conf
+# add the following line:
+host	all		all		0.0.0.0/0		md5
+
+# edit configuration to enable replication with wal2json
+sudo nano /etc/postgresql/12/main/postgresql.conf
+
+# change the following lines:
+#------------------------------------------------------------------------------
+# CUSTOMIZED OPTIONS
+#------------------------------------------------------------------------------
+
+# Add settings for extensions here
+# LOGGING
+log_min_error_statement = fatal
+# CONNECTION
+listen_addresses = '*'
+# MODULES
+shared_preload_libraries = 'wal2json'
+# REPLICATION
+wal_level = logical             # minimal, archive, hot_standby, or logical (change requires restart)
+#max_wal_senders = 1             # max number of walsender processes (change requires restart)
+#wal_keep_segments = 4          # in logfile segments, 16MB each; 0 disables
+#wal_sender_timeout = 60s       # in milliseconds; 0 disables
+#max_replication_slots = 1       # max number of replication slots (change requires restart)
+
+#------------------------------------------------------------------------------
+# FILE LOCATIONS
+#------------------------------------------------------------------------------
+
+# The default values of these variables are driven from the -D command-line
+# option or PGDATA environment variable, represented here as ConfigDir.
+
+data_directory = '/mnt/pgdata/postgresql/12/main'
+
+# restart the postgres instance
+
+Second, we created a database for the indexer which is also called indexer:
+sudo -u postgres psql
+
+# create a super user for Algorand called "algorand".
+createuser --interactive
+
+sudo -u postgres createdb indexer
+# check 
+sudo -u postgres psql -d indexer
+\conninfo
+# You are connected to database "indexer" as user "algorand" via socket in "/var/run/postgresql" at port "5432".
+
+\c indexer
+#list tables
+\dt
+
+# HINT: you can use a DB Client like DBeaver to inspect the database conveniently.
+
+Third, in order to check whether Postgresql is installed and running:
+1. #check if postgresql is installed:
+pgrep -u postgres -fa -- -D
+
+#Result:
+185528 /usr/lib/postgresql/12/bin/postgres -D /mnt/pgdata/postgresql/12/main -c config_file=/etc/postgresql/12/main/postgresql.conf
+
+2. #check if postgresql is running and connect to it:
+psql -h 127.0.0.1 -U postgres
+
+#disconnect from psql:
+\q
+
+3. #check version of postgresql:
+/usr/lib/postgresql/12/bin$ ./postgres -V
+postgres (PostgreSQL) 12.9 (Ubuntu 12.9-0ubuntu0.20.04.1)
