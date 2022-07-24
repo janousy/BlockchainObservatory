@@ -4,17 +4,6 @@
     "typeenum": 1,
     "asset": 0,
     "txid": "TVFESUVTRlBGTTNDVU5HQUdGTkc1M1dHS1dMVEtVWk5OQjRKM1NaNVY3RzJRSjJONVczUQ==",
-    "txn": "{
-        \"rr\": 73008, 
-        \"sig\": \"6Cfjv1o4Wl68J16ucsJqlbq3xFkM7Rpbn1B24AST/RprSgE/wcVWSwBtZ7A38qzZ0jUeR7uGGXtcV820foGZAA==\", 
-        \"txn\": {
-            \"fv\": 14075771, \"gh\": \"wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=\", 
-            \"lv\": 14076771, \"amt\": 7851, \"fee\": 1000, 
-            \"gen\": \"mainnet-v1.0\", \"rcv\": \"4LhXOGZjlw37lhkpdmcNCZh03B05hCf5NX2fjkukivo=\", 
-            \"snd\": \"wS+i/DTz5ouQcFB5LtamGILjPuAAoXlRUJlmUaB8W5E=\", 
-            \"note\": \"aHR0cHM6Ly93d3cuYWxnb3JhbmRmYXVjZXQuY29t\", 
-            \"type\": \"pay\"
-            }
-        }",
+    "txn": "{\"rr\": 73008, \"sig\": \"6Cfjv1o4Wl68J16ucsJqlbq3xFkM7Rpbn1B24AST/RprSgE/wcVWSwBtZ7A38qzZ0jUeR7uGGXtcV820foGZAA==\", \"txn\": {\"fv\": 14075771, \"gh\": \"wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=\", \"lv\": 14076771, \"amt\": 7851, \"fee\": 1000, \"gen\": \"mainnet-v1.0\", \"rcv\": \"4LhXOGZjlw37lhkpdmcNCZh03B05hCf5NX2fjkukivo=\", \"snd\": \"wS+i/DTz5ouQcFB5LtamGILjPuAAoXlRUJlmUaB8W5E=\", \"note\": \"aHR0cHM6Ly93d3cuYWxnb3JhbmRmYXVjZXQuY29t\", \"type\": \"pay\"}}",
     "extra": "{}"
   }

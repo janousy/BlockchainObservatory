@@ -1,25 +1,25 @@
 {
   "name": "debezium_algod_indexer",
   "config": {
-    "value.converter.schemas.enable": "false",
-    "key.converter.schemas.enable": "false",
     "name": "debezium_algod_indexer",
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-    "tasks.max": "1",
+    "database.server.name": "algod.indexer",
+    "database.hostname": "172.23.149.211",
+    "database.dbname": "indexer",
+    "database.user": "postgres",
+    "database.port": "5432",
+    "plugin.name": "wal2json",
+    "database.password": "********",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "tasks.max": "1",
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
     "transforms.unwrap.add.headers": "op, table, lsn, source.ts_ms, version",
-    "database.server.name": "algod.indexer",
-    "database.hostname": "172.23.149.211",
-    "database.port": "5432",
-    "database.user": "postgres",
-    "database.password": "********",
-    "database.dbname": "indexer",
-    "plugin.name": "wal2json",
     "binary.handling.mode": "base64",
-    "tombstones.on.delete": "false",
-    "decimal.handling.mode":"double"
+    "decimal.handling.mode":"double",
+    "tombstones.on.delete": "false"
   }
 }

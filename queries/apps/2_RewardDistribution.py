@@ -36,7 +36,7 @@ if __name__ == '__main__':
     spark = SparkSession \
         .builder \
         .config(conf=config) \
-        .appName("2_StakerDistributionApplication") \
+        .appName("2_RewardDistributionApplication") \
         .master("spark://172.23.149.212:7077") \
         .getOrCreate()
 
@@ -235,9 +235,9 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Nodes Participating Starting Blockround", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_Start_Distribution_Blockround.jpg', dpi=200)
+    plt.ylabel("Number of Accounts")
+    plt.title("Distribution of Accounts Participating Starting Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Account_Start_Distribution_Blockround.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -274,9 +274,26 @@ if __name__ == '__main__':
     plt.rcParams["figure.autolayout"] = True
     plt.yscale('log')
     plt.xlabel("Blockround")
-    plt.ylabel("Number of Staker")
-    plt.title("Distribution of Nodes Participating Ending Blockround", loc='center', pad=None)
-    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Nodes_End_Distribution_Blockround.jpg', dpi=200)
+    plt.ylabel("Number of Accounts")
+    plt.title("Distribution of Accounts Participating Ending Blockround", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Accounts_End_Distribution_Blockround.jpg', dpi=200)
+    plt.show()
+    plt.close()
+
+    # histogram x-axis round when starting vs ending to participate in the consensus
+    # the graph is saved on the vm
+    bin_size = 50
+
+    plt.figure()
+    plt.hist(rounds, bins=bin_size, alpha=0.5, label="Starting Rounds")
+    plt.hist(roundsOffline, bins=bin_size, alpha=0.5, label="Ending Rounds")
+    plt.rcParams["figure.autolayout"] = True
+    plt.yscale('log')
+    plt.xlabel("Blockround")
+    plt.ylabel("Number of Accounts")
+    plt.legend(loc="upper right")
+    plt.title("Accounts Starting vs. Ending in the Consensus", loc='center', pad=None)
+    plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Starting_vs_Ending_Consensus.jpg', dpi=200)
     plt.show()
     plt.close()
 
@@ -318,8 +335,8 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel("Microalgos")
-    plt.ylabel("Number of Staker")
-    plt.title("Staker Reward Distribution", loc='center', pad=None)
+    plt.ylabel("Number of Accounts")
+    plt.title("Reward Distribution", loc='center', pad=None)
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/Staker_reward_distribution.jpg', dpi=200)
     plt.show()
     plt.close()
@@ -336,21 +353,22 @@ if __name__ == '__main__':
 
     # save the whales, the top 10 whales are saved in a list
     # the top 10 are plotted
-    name = "Staker "
+    name = "Account "
     plt.figure()
     for i in range(5):
         plt.bar(name + str(i), topStakersProportion[i], width=0.4)
 
     plt.rcParams["figure.figsize"] = (10, 5)
-    plt.title("The 5 Biggest Stakers: Their Staking Rewards Compared to All Rewards (Proportion in pc)", loc='center',
+    plt.title("The Accounts with the Biggest Rewards Compared to All Rewards", loc='center',
               pad=None)
-
+    plt.ylabel("Proportion in %")
     plt.legend([topStakersAddresses[0], topStakersAddresses[1], topStakersAddresses[2], topStakersAddresses[3],
                 topStakersAddresses[4]])
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
     plt.show()
     plt.close()
-
+    #creates a helperlist for the appended date / round
+    newestRoundStaker = [newestRoundStaker] * 10
     # write the current whales in gold table
     column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
     result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
