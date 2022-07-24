@@ -17,7 +17,7 @@ if __name__ == '__main__':
         ('spark.dynamicAllocation.enabled', 'true'),
         ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
         ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '0'),
+        ('spark.dynamicAllocation.minExecutors', '1'),
         ('spark.dynamicAllocation.maxExecutors', '2'),
         ('spark.dynamicAllocation.initialExecutors', '1'),
         ('spark.dynamicAllocation.executorAllocationRatio', '1'),
