@@ -141,26 +141,7 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
-    # write number of stakers in gold table
-    # append to get a history over the development
-    transactions = dfTx.count()
-    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
 
-    result = spark.createDataFrame(
-        [
-            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
-
-        ],
-        ["NrOfTransactions", "CreationRound"]  # add your column names here
-    )
-
-    result.write.format("mongodb") \
-        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
-        .mode("append") \
-        .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'NumberOfStakerRelatedTransactions_2') \
-        .option("forceDeleteTempCheckpointLocation", "true") \
-        .save()
 
     # get BlockHeader to know the Realtime of a Block
     dfBlock = spark.read.format("mongodb") \
@@ -210,6 +191,27 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    # write number of stakers in gold table
+    # append to get a history over the development
+    transactions = dfTx.count()
+    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
+
+    result = spark.createDataFrame(
+        [
+            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
+
+        ],
+        ["NrOfTransactions", "CreationRound"]  # add your column names here
+    )
+
+    result.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("append") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'NumberOfStakerRelatedTransactions_2') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
     # graph, histogram x-axis round when starting participating
     graph = dfOnline.select("participationRound")
 
@@ -228,7 +230,6 @@ if __name__ == '__main__':
     # how many bars in the histogram should be plotted
 
     bin_size = 50
-    # distribute bins log(equally) over the whole data
 
     plt.figure()
     plt.hist(rounds, bins=bin_size)
