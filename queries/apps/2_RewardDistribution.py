@@ -10,7 +10,7 @@ from pyspark.sql import types
 from pyspark.sql.types import StructField, StringType, LongType, DoubleType, BooleanType, StructType, IntegerType
 
 if __name__ == '__main__':
-    # config for our sparksession
+    # config for our spark session
     config = pyspark.SparkConf().setAll([
         ('spark.executor.memory', '8g'),
         ('spark.executor.cores', '4'),
