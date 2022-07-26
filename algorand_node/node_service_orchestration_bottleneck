@@ -35,7 +35,7 @@ ProtectHome=true
 WantedBy=multi-user.target
 # ----------------------
 
-# check service config, which should load the unit file in /etc/system/systemd
+# check service config, which should load the unit file in /etc/systemd/system
 systemctl cat algorand
 
 #Then reload the deamon and start the algorand server. If it doesn't work with the first attempt, apply the following commands again:
