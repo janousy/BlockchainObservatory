@@ -7,7 +7,7 @@ if __name__ == '__main__':
         ('spark.executor.memory', '16g'),
         ('spark.executor.cores', '4'),
         ('spark.cores.max', '4'),
-        ('spark.driver.memory', '16'),
+        ('spark.driver.memory', '16g'),
         ('spark.executor.instances', '1'),
         ('spark.worker.cleanup.enabled', 'true'),
         ('spark.worker.cleanup.interval', '60'),

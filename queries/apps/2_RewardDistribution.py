@@ -10,23 +10,15 @@ from pyspark.sql import types
 from pyspark.sql.types import StructField, StringType, LongType, DoubleType, BooleanType, StructType, IntegerType
 
 if __name__ == '__main__':
-    # config for our sparksession
+    # config for our spark session
     config = pyspark.SparkConf().setAll([
         ('spark.executor.memory', '8g'),
         ('spark.executor.cores', '4'),
         ('spark.cores.max', '8'),
         ('spark.driver.memory', '4g'),
-        ('spark.executor.instances', '1'),
-        ('spark.dynamicAllocation.enabled', 'true'),
-        ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
-        ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '1'),
-        ('spark.dynamicAllocation.maxExecutors', '2'),
-        ('spark.dynamicAllocation.initialExecutors', '1'),
-        ('spark.dynamicAllocation.executorAllocationRatio', '1'),
+        ('spark.executor.instances', '2'),
         ('spark.worker.cleanup.enabled', 'true'),
         ('spark.worker.cleanup.interval', '60'),
-        ('spark.shuffle.service.db.enabled', 'true'),
         ('spark.worker.cleanup.appDataTtl', '60'),
         ('spark.jars.packages', 'org.mongodb.spark:mongo-spark-connector:10.0.2')
     ])
@@ -141,26 +133,7 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
-    # write number of stakers in gold table
-    # append to get a history over the development
-    transactions = dfTx.count()
-    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
 
-    result = spark.createDataFrame(
-        [
-            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
-
-        ],
-        ["NrOfTransactions", "CreationRound"]  # add your column names here
-    )
-
-    result.write.format("mongodb") \
-        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
-        .mode("append") \
-        .option('spark.mongodb.database', 'algorand_gold') \
-        .option('spark.mongodb.collection', 'NumberOfStakerRelatedTransactions_2') \
-        .option("forceDeleteTempCheckpointLocation", "true") \
-        .save()
 
     # get BlockHeader to know the Realtime of a Block
     dfBlock = spark.read.format("mongodb") \
@@ -210,6 +183,27 @@ if __name__ == '__main__':
         .option("forceDeleteTempCheckpointLocation", "true") \
         .save()
 
+    # write number of stakers in gold table
+    # append to get a history over the development
+    transactions = dfTx.count()
+    newestRoundTx = dfTx.agg(F.max("applicationRound")).collect()[0][0]
+
+    result = spark.createDataFrame(
+        [
+            (transactions, newestRoundTx)  # create your data here, be consistent in the types.
+
+        ],
+        ["NrOfTransactions", "CreationRound"]  # add your column names here
+    )
+
+    result.write.format("mongodb") \
+        .option('spark.mongodb.connection.uri', 'mongodb://172.23.149.212:27017') \
+        .mode("append") \
+        .option('spark.mongodb.database', 'algorand_gold') \
+        .option('spark.mongodb.collection', 'NumberOfStakerRelatedTransactions_2') \
+        .option("forceDeleteTempCheckpointLocation", "true") \
+        .save()
+
     # graph, histogram x-axis round when starting participating
     graph = dfOnline.select("participationRound")
 
@@ -228,7 +222,6 @@ if __name__ == '__main__':
     # how many bars in the histogram should be plotted
 
     bin_size = 50
-    # distribute bins log(equally) over the whole data
 
     plt.figure()
     plt.hist(rounds, bins=bin_size)
@@ -367,11 +360,12 @@ if __name__ == '__main__':
     plt.savefig('/home/ubuntu/apps/figures/2_stakerDistribution/ProportionTopStakers.jpg', dpi=200)
     plt.show()
     plt.close()
-
+    #creates a helperlist for the appended date / round
+    newestRoundStaker = [newestRoundStaker] * 10
     # write the current whales in gold table
     column = ["Address", "Proportion_in_pc", "Rewards_in_mAlgos", "Rewards_in_Algos", "CreationRound"]
     result = spark.createDataFrame(zip(topStakersAddresses, topStakersProportion, topStakersRewards,
-                                       topStakersRewardsAlgos, F.lit(newestRoundStaker), column))
+                                       topStakersRewardsAlgos, newestRoundStaker), column)
 
     # write it back for metabase dashboard
     result.write.format("mongodb") \

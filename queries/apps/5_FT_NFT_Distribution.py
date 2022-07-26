@@ -19,17 +19,9 @@ if __name__ == '__main__':
         ('spark.executor.cores', '2'),
         ('spark.cores.max', '4'),
         ('spark.driver.memory', '2g'),
-        ('spark.executor.instances', '1'),
-        ('spark.dynamicAllocation.enabled', 'true'),
-        ('spark.dynamicAllocation.shuffleTracking.enabled', 'true'),
-        ('spark.dynamicAllocation.executorIdleTimeout', '60s'),
-        ('spark.dynamicAllocation.minExecutors', '0'),
-        ('spark.dynamicAllocation.maxExecutors', '2'),
-        ('spark.dynamicAllocation.initialExecutors', '1'),
-        ('spark.dynamicAllocation.executorAllocationRatio', '1'),
+        ('spark.executor.instances', '2'),
         ('spark.worker.cleanup.enabled', 'true'),
         ('spark.worker.cleanup.interval', '60'),
-        ('spark.shuffle.service.db.enabled', 'true'),
         ('spark.worker.cleanup.appDataTtl', '60'),
         ('spark.jars.packages', 'org.mongodb.spark:mongo-spark-connector:10.0.2')
     ])
