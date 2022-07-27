@@ -2,6 +2,7 @@ First, we arranged the VM such that it met the hardware specifications: 4 cores,
 An SDD disk which provides faster data loading is recommended rather than HDD. 
 But on ScienceCloud, we couldn't obtain an SSD. So, we added an HDD disk on the VM which is more than 2 TB and mounted it under /mnt}.
 
+------------------INSTALLATION----------------------------
 1) The ports below were opened:
   "35000 required to be externally visible" on the network
   "7777 RPC endpoint for interaction with casper-client"
@@ -99,6 +100,7 @@ Also, one should remove any casper node setup related files under the associated
   #Obtain a trusted hash
   sudo sed -i "/trusted_hash =/c\trusted_hash = '$(casper-client get-block --node-address http://3.14.161.135:7777 -b 20 | jq -r .result.block.hash | tr -d '\n')'" /etc/casper/1_0_0/config.toml
 
+----------------------CONFIGURATION---------------------------
 9) At this point the node is ready to be started, but we would like to use the bigger disk mounted under /mnt 
 and which is more than 2TB as the mainnet data directory. By default the data directory is under /var/lib/casper/casper-node. 
 So, first we created a new directory called "casper-mainnet" under /mnt. The directory name can be chosen freely. 
@@ -113,7 +115,8 @@ config.toml and config-example.toml files under /etc/casper/1_x_x.There are 12 d
 so that the node that would use the new data directory could be started successfully.
 
   sudo chown -R casper:casper /mnt/casper-mainnet
-  
+
+---------------------ADMINISTRATION AND MONITORING------------------
 12) Lastly, commands below were used to start the node and watch its syncing status. 
 
   #Start the node either using the commands below:
