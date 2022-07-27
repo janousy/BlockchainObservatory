@@ -90,14 +90,14 @@ Also, one should remove any casper node setup related files under the associated
   
 8) Then, we installed the protocols, created validator keys and obtained a trusted hash by running the commands below.
 
-#Install protocols
-sudo -u casper /etc/casper/node_util.py stage_protocols casper.conf
+  #Install protocols
+  sudo -u casper /etc/casper/node_util.py stage_protocols casper.conf
 
-#Create validator keys
-sudo -u casper casper-client keygen /etc/casper/validator_keys
+  #Create validator keys
+  sudo -u casper casper-client keygen /etc/casper/validator_keys
 
-#Obtain a trusted hash
-sudo sed -i "/trusted_hash =/c\trusted_hash = '$(casper-client get-block --node-address http://3.14.161.135:7777 -b 20 | jq -r .result.block.hash | tr -d '\n')'" /etc/casper/1_0_0/config.toml
+  #Obtain a trusted hash
+  sudo sed -i "/trusted_hash =/c\trusted_hash = '$(casper-client get-block --node-address http://3.14.161.135:7777 -b 20 | jq -r .result.block.hash | tr -d '\n')'" /etc/casper/1_0_0/config.toml
 
 9) At this point the node is ready to be started, but we would like to use the bigger disk mounted under /mnt 
 and which is more than 2TB as the mainnet data directory. By default the data directory is under /var/lib/casper/casper-node. 
@@ -107,7 +107,7 @@ config.toml and config-example.toml files under /etc/casper/1_x_x.There are 12 d
 1_0_0, 1_1_0, 1_1_2, 1_2_0, 1_2_1, 1_3_2, 1_3_4, 1_4_1, 1_4_3, 1_4_4, 1_4_5, 1_4_6. 
 
 10) Besides, we also changed the value of the "DB_PATH" parameter of "class NodeUtil" in "node_util.py" file under /etc/casper directory:
-DB_PATH = Path("/var/lib/casper/casper-node") is modified into DB\_PATH = Path("/mnt/casper-mainnet")
+  DB_PATH = Path("/var/lib/casper/casper-node") is modified into DB\_PATH = Path("/mnt/casper-mainnet")
 
 11) Finally, we changed the ownership of the /mnt/casper-mainnet directory to the "casper" user as below, 
 so that the node that would use the new data directory could be started successfully.
@@ -116,40 +116,40 @@ so that the node that would use the new data directory could be started successf
   
 12) Lastly, commands below were used to start the node and watch its syncing status. 
 
-#Start the node either using the commands below:
-sudo /etc/casper/node_util.py rotate_logs
-sudo /etc/casper/node_util.py start
+  #Start the node either using the commands below:
+  sudo /etc/casper/node_util.py rotate_logs
+  sudo /etc/casper/node_util.py start
 
-#Or the commands below:
-sudo systemctl enable casper-node-launcher
-sudo systemctl start casper-node-launcher
+  #Or the commands below:
+  sudo systemctl enable casper-node-launcher
+  sudo systemctl start casper-node-launcher
 
-#Monitor the status of the data loading
-/etc/casper/node_util.py watch
+  #Monitor the status of the data loading
+  /etc/casper/node_util.py watch
 
-#An example output of a node which is syncing data successfully can be seen 
-#in the Casper GitHub(https://github.com/casper-network/casper-node/wiki/Mainnet-Node-Installation-Instructions#monitor-the-node-syncing). 
-#The "RPC" status must be seen as "Ready" and there must be a value for the "Latest Block". 
+  #An example output of a node which is syncing data successfully can be seen 
+  #in the Casper GitHub(https://github.com/casper-network/casper-node/wiki/Mainnet-Node-Installation-Instructions#monitor-the-node-syncing). 
+  #The "RPC" status must be seen as "Ready" and there must be a value for the "Latest Block". 
 
-#One can also use the command below to monitor the syncing status:
-watch -n 5 ‘echo -n "Peer Count: "; curl -s localhost:8888/status | jq “.peers | length”; echo; echo “last_added_block_info:”; curl -s localhost:8888/status | jq .last_added_block_info; echo; echo “casper-node-launcher status:”; systemctl status casper-node-launcher’
+  #One can also use the command below to monitor the syncing status:
+  watch -n 5 ‘echo -n "Peer Count: "; curl -s localhost:8888/status | jq “.peers | length”; echo; echo “last_added_block_info:”; curl -s localhost:8888/status | jq .last_added_block_info; echo; echo “casper-node-launcher status:”; systemctl status casper-node-launcher’
 
-#Or the command below to monitor the node's running status:
-sudo systemctl status casper-node-
+  #Or the command below to monitor the node's running status:
+  sudo systemctl status casper-node-
 
-#Check the last added block information:
-curl -s localhost:8888/status | jq .last_added_block_info
+  #Check the last added block information:
+  curl -s localhost:8888/status | jq .last_added_block_info
 
-#Stop the node using the commands below:
-sudo systemctl stop casper-node-launcher
-sudo systemctl disable casper-node-launcher
+  #Stop the node using the commands below:
+  sudo systemctl stop casper-node-launcher
+  sudo systemctl disable casper-node-launcher
 
 13) You can check if the node has finished its initial syncing by comparing the value corresponding to last_added_block_info 
 to the "latest block height" on CSPR Live website(https://cspr.live/blocks). According to what Casper Support informed, 
 it lasts several hours for the node to initialize the database, to form peer connections and to ask for blocks. 
 They predict that whole mainnet data can be synced in about a week.
 
-When the node was started for the first time, data files were created automatically by casper-node-launcher 
+14) When the node was started for the first time, data files were created automatically by casper-node-launcher 
 under the data directory /mnt/casper-mainnet and its (data.lmdb) size was increasing in time.
 
 
