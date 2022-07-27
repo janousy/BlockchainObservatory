@@ -1,3 +1,7 @@
+First, we arranged the VM such that it met the hardware specifications: 4 cores, 32 GB RAM and 2 TB SDD. 
+An SDD disk which provides faster data loading is recommended rather than HDD. 
+But on ScienceCloud, we couldn't obtain an SSD. So, we added an HDD disk on the VM which is more than 2 TB and mounted it under /mnt}.
+
 1) The ports below were opened:
   "35000 required to be externally visible" on the network
   "7777 RPC endpoint for interaction with casper-client"
