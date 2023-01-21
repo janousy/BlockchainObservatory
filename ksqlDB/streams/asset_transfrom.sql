@@ -25,8 +25,8 @@ AS SELECT
     `deleted`,
     `created_at`,
     `closed_at`,
-    CAST(EXTRACTJSONFIELD(`params`, '$.t') AS BIGINT) AS `t`,
-    CAST(EXTRACTJSONFIELD(`params`, '$.dc') AS BIGINT) AS `dc`,
+    CAST(EXTRACTJSONFIELD(`params`, '$.t') AS DECIMAL(38, 0)) AS `t`,
+    CAST(EXTRACTJSONFIELD(`params`, '$.dc') AS DECIMAL(38, 0)) AS `dc`,
     CAST(EXTRACTJSONFIELD(`params`, '$.df') AS BOOLEAN) AS `df`,
     CAST(EXTRACTJSONFIELD(`params`, '$.un') AS STRING) AS `un`,
     CAST(EXTRACTJSONFIELD(`params`, '$.an') AS STRING) AS `an`,
@@ -37,3 +37,5 @@ AS SELECT
     CAST(EXTRACTJSONFIELD(`params`, '$.f') AS STRING) AS `f`,
     CAST(EXTRACTJSONFIELD(`params`, '$.c') AS STRING) AS `c`
 FROM ALGOD_INDEXER_PUBLIC_ASSET_STREAM;
+
+TERMINATE `algod_indexer_public_asset_flat`;
