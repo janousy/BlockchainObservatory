@@ -1,6 +1,6 @@
 # README
 
-This repository contains the result of our master project at University of Zurich in Data Science. Within 6 months, we designed an architecture for cross-platform blockchain data analysis together with the UZH Blockchain Center ([https://www.blockchain.uzh.ch/](https://www.blockchain.uzh.ch/)). The architecture is a fist viable proof of concept and very likely to evolve. The deployment process is thus not streamlined. This repository should rather serve as an overview and guideline.
+This repository contains the result of our master project at University of Zurich in Data Science. Within 6 months, a team of four designed and implemented an architecture for cross-platform blockchain data analysis together with the UZH Blockchain Center ([https://www.blockchain.uzh.ch/](https://www.blockchain.uzh.ch/)). The architecture is a fist viable proof of concept and very likely to evolve. The deployment process is thus not streamlined. This repository should rather serve as an overview and guideline.
 
 ## Abstract
 
